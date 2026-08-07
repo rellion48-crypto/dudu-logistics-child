@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/admin",
+      "destination": "/dudu-F-single-page/admin.html"
+    },
+    {
       "source": "/",
       "destination": "/dudu-F-single-page/single-page.html"
     }

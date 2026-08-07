@@ -5,12 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>두두택배 접수 - 단계별 입력</title>
 <style>
-  :root {
+  :root, [data-theme="light"] {
     --brand: #14508c; --brand-dark: #0d3a66; --accent: #e0692a;
-    --bg: #eef1f4; --card: #ffffff; --border: #d7dde3; --text: #1c2733; --muted: #667485;
+    --bg: #eef1f4; --card: #ffffff; --card-sub: #f6f8fa; --right-panel-bg: #f9fafb;
+    --border: #d7dde3; --text: #1c2733; --muted: #667485;
+    --input-bg: #ffffff; --table-header: #eef2f6; --progress-bg: #e5e7eb;
+    --btn-edit-bg: #ffffff; --btn-edit-hover: #f5f5f5;
     --ok-bg: #eef7f0; --ok-border: #b9dfc2; --ok-text: #27a745;
     --bad-bg: #fbeceb; --bad-border: #eab6b0; --bad-text: #c0392b;
     --warn-bg: #fff8e6; --warn-border: #f0d68a; --warn-text: #8a6d1f;
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231c2733' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  }
+
+  [data-theme="dark"] {
+    --brand: #5a9fd4; --brand-dark: #14508c; --accent: #ff9d5c;
+    --bg: #0f172a; --card: #1e293b; --card-sub: #0f172a; --right-panel-bg: #111827;
+    --border: #334155; --text: #f8fafc; --muted: #94a3b8;
+    --input-bg: #0f172a; --table-header: #334155; --progress-bg: #334155;
+    --btn-edit-bg: #1e293b; --btn-edit-hover: #334155;
+    --ok-bg: #064e3b; --ok-border: #047857; --ok-text: #34d399;
+    --bad-bg: #451a1a; --bad-border: #7f1d1d; --bad-text: #fca5a5;
+    --warn-bg: #453a1a; --warn-border: #7f6e1d; --warn-text: #fde047;
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23f8fafc' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
   }
   * { box-sizing: border-box; }
   body {
@@ -22,14 +38,21 @@
   }
   .page { max-width: 1200px; margin: 0 auto; }
 
-  .topbar { background: var(--brand); color: #fff; padding: 20px 22px; border-radius: 14px 14px 0 0; }
+  .topbar { background: var(--brand); color: #fff; padding: 20px 22px; border-radius: 14px 14px 0 0; display: flex; justify-content: space-between; align-items: center; }
+  .topbar-left { flex: 1; }
   .topbar .brand { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
   .topbar .sub { font-size: 13px; opacity: .85; margin-top: 6px; }
+  .theme-toggle {
+    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35); color: #fff;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;
+  }
+  .theme-toggle:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
 
   .layout { display: grid; grid-template-columns: 1fr 320px; gap: 0; background: var(--card); border: 1px solid var(--border); border-top: none; border-radius: 0 0 14px 14px; overflow: hidden; }
 
   .left-panel { padding: 32px 28px; border-right: 1px solid var(--border); }
-  .right-panel { padding: 22px; background: #f9fafb; }
+  .right-panel { padding: 22px; background: var(--right-panel-bg); }
 
   .step-title { font-size: 20px; font-weight: 800; margin: 0 0 8px; color: var(--text); }
   .step-desc { font-size: 13px; color: var(--muted); margin: 0 0 24px; }
@@ -46,14 +69,14 @@
 
   input[type="text"], input[type="number"], select {
     width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
-    font-size: 15px; background: #fff; font-family: inherit; color: var(--text); transition: all 0.2s;
+    font-size: 15px; background: var(--input-bg); font-family: inherit; color: var(--text); transition: all 0.2s;
   }
   input[type="text"]:focus, input[type="number"]:focus, select:focus {
-    outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(20, 80, 140, 0.1);
+    outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(20, 80, 140, 0.15);
   }
   select {
     cursor: pointer; appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231c2733' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-image: var(--select-arrow);
     background-repeat: no-repeat; background-position: right 12px center; padding-right: 40px;
   }
 
@@ -74,7 +97,7 @@
   .error-box ul { margin: 0; padding-left: 20px; }
 
   .calc-preview {
-    margin-top: 20px; padding: 16px; background: #f6f8fa; border: 1px solid var(--border); border-radius: 8px;
+    margin-top: 20px; padding: 16px; background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px;
     display: none;
   }
   .calc-preview.show { display: block; animation: slideIn 0.3s ease-out; }
@@ -89,30 +112,30 @@
   .btn-next { flex: 1; background: var(--brand); color: #fff; }
   .btn-next:hover:not(:disabled) { background: var(--brand-dark); }
   .btn-next:disabled { background: #a9b6c4; cursor: not-allowed; }
-  .btn-edit { flex: 1; background: #fff; border: 1px solid var(--border); color: var(--text); }
-  .btn-edit:hover { background: #f5f5f5; }
+  .btn-edit { flex: 1; background: var(--btn-edit-bg); border: 1px solid var(--border); color: var(--text); }
+  .btn-edit:hover { background: var(--btn-edit-hover); }
   .btn-submit { flex: 1; background: var(--ok-text); color: #fff; }
-  .btn-submit:hover { background: #229739; }
+  .btn-submit:hover { opacity: 0.9; }
 
   .right-panel h3 { font-size: 13px; font-weight: 700; color: var(--text); margin: 0 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
   .summary-item { margin-bottom: 16px; }
   .summary-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
   .summary-value { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 4px; word-break: break-word; }
   .summary-value.empty { color: var(--muted); font-weight: 400; }
-  .progress-bar { width: 100%; height: 6px; background: #e5e7eb; border-radius: 3px; margin: 16px 0; overflow: hidden; }
+  .progress-bar { width: 100%; height: 6px; background: var(--progress-bg); border-radius: 3px; margin: 16px 0; overflow: hidden; }
   .progress-fill { height: 100%; background: var(--brand); transition: width 0.3s; }
 
   .receipt-section { display: none; animation: slideIn 0.3s ease-out; }
   .receipt-section.show { display: block; }
   .receipt-card { background: var(--ok-bg); border: 2px solid var(--ok-border); border-radius: 12px; padding: 24px; text-align: center; }
   .receipt-title { font-weight: 800; font-size: 16px; color: var(--ok-text); }
-  .receipt-tno { font-size: 24px; font-weight: 800; color: var(--brand-dark); margin: 12px 0; font-family: monospace; }
+  .receipt-tno { font-size: 24px; font-weight: 800; color: var(--brand); margin: 12px 0; font-family: monospace; }
   .receipt-line { font-size: 13px; margin-top: 6px; color: var(--text); }
   .receipt-price { font-size: 28px; font-weight: 800; color: var(--brand); margin: 14px 0; }
 
   .list-section { margin-top: 24px; }
-  .list-section table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .list-section th { background: #eef2f6; padding: 10px 8px; text-align: left; font-weight: 600; color: var(--muted); border-bottom: 2px solid var(--border); }
+  .list-section table { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--text); }
+  .list-section th { background: var(--table-header); padding: 10px 8px; text-align: left; font-weight: 600; color: var(--muted); border-bottom: 2px solid var(--border); }
   .list-section td { padding: 10px 8px; border-bottom: 1px solid var(--border); }
   .empty-row td { text-align: center; color: var(--muted); padding: 20px; }
 
@@ -140,8 +163,19 @@
 <body>
 <div class="page">
   <div class="topbar">
-    <div class="brand">두두택배 접수</div>
-    <div class="sub">단계별 입력으로 깔끔하게 접수하세요</div>
+    <div class="topbar-left">
+      <div class="brand">두두택배 접수</div>
+      <div class="sub">단계별 입력으로 깔끔하게 접수하세요</div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <a href="/admin" class="theme-toggle" style="text-decoration: none;" title="관리자 페이지 이동">
+        🔒 관리자
+      </a>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="다크모드/화이트모드 전환">
+        <span id="themeIcon">🌙</span>
+        <span id="themeText">다크 모드</span>
+      </button>
+    </div>
   </div>
 
   <div class="layout">
@@ -211,7 +245,7 @@
         <h1 class="step-title">기본 정보 확인</h1>
         <p class="step-desc">입력하신 정보가 맞는지 확인해주세요</p>
 
-        <div style="background: #f6f8fa; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
           <div style="margin-bottom: 12px;"><strong>접수 지점:</strong> <span id="conf1Branch"></span></div>
           <div style="margin-bottom: 12px;"><strong>보내는 분:</strong> <span id="conf1Sender"></span></div>
           <div style="margin-bottom: 12px;"><strong>받는 분:</strong> <span id="conf1Receiver"></span></div>
@@ -271,7 +305,7 @@
         <h1 class="step-title">물품 정보 확인</h1>
         <p class="step-desc">입력하신 물품 정보가 맞는지 확인해주세요</p>
 
-        <div style="background: #f6f8fa; padding: 16px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px;">
           <div style="margin-bottom: 12px;"><strong>물품명:</strong> <span id="conf2Item"></span></div>
           <div style="margin-bottom: 12px;"><strong>무게:</strong> <span id="conf2Weight"></span></div>
           <div style="margin-bottom: 12px;"><strong>규격:</strong> <span id="conf2Size"></span></div>
@@ -290,7 +324,7 @@
         <h1 class="step-title">최종 확인</h1>
         <p class="step-desc">모든 정보를 확인하고 접수를 완료하세요</p>
 
-        <div style="background: #f6f8fa; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; line-height: 1.8;">
+        <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; line-height: 1.8;">
           <div style="margin-bottom: 10px;"><strong>기본정보</strong></div>
           <div style="margin-left: 12px; margin-bottom: 12px;">
             <div>지점: <span id="final1Branch"></span></div>
@@ -389,6 +423,46 @@
 </div>
 
 <script>
+  // ============================================================
+  // 다크모드 전환
+  // ============================================================
+  function initTheme() {
+    // localStorage에서 사용자 설정 확인
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      document.getElementById('themeIcon').textContent = '☀️';
+    } else if (savedTheme === 'light') {
+      document.body.classList.remove('dark-mode');
+      document.getElementById('themeIcon').textContent = '🌙';
+    } else {
+      // 사용자 설정이 없으면 시스템 설정 따르기
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark-mode');
+        document.getElementById('themeIcon').textContent = '☀️';
+      } else {
+        document.getElementById('themeIcon').textContent = '🌙';
+      }
+    }
+  }
+
+  function toggleTheme() {
+    playClickSound();
+    const isDark = document.body.classList.contains('dark-mode');
+    if (isDark) {
+      document.body.classList.remove('dark-mode');
+      document.getElementById('themeIcon').textContent = '🌙';
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.body.classList.add('dark-mode');
+      document.getElementById('themeIcon').textContent = '☀️';
+      localStorage.setItem('theme', 'dark');
+    }
+  }
+
+  // 페이지 로드 시 테마 적용
+  document.addEventListener('DOMContentLoaded', initTheme);
+
   // ============================================================
   // 효과음
   // ============================================================
@@ -902,8 +976,63 @@
     if (step === 3) updateFinalPanel();
   };
 
-  renderList();
-  updatePanel();
+  // ============================================================
+  // 테마 (다크모드/라이트모드) 관리
+  // ============================================================
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    updateThemeBtn(theme === 'dark');
+  }
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      applyTheme(savedTheme);
+    } else {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(prefersDark ? 'dark' : 'light');
+    }
+  }
+
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(newTheme);
+  }
+
+  function updateThemeBtn(isDark) {
+    const icon = document.getElementById('themeIcon');
+    const text = document.getElementById('themeText');
+    if (isDark) {
+      if (icon) icon.textContent = '☀️';
+      if (text) text.textContent = '라이트 모드';
+    } else {
+      if (icon) icon.textContent = '🌙';
+      if (text) text.textContent = '다크 모드';
+    }
+  }
+
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (!localStorage.getItem('theme')) {
+        applyTheme(e.matches ? 'dark' : 'light');
+      }
+    });
+  }
+
+  // 초기화 (DOMContentLoaded와 함께 실행)
+  function startApp() {
+    initTheme();
+    renderList();
+    updatePanel();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startApp);
+  } else {
+    startApp();
+  }
 </script>
 </body>
 </html>

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>두두택배 관리자 시스템</title>
+<style>
+  :root, [data-theme="light"] {
+    --brand: #14508c; --brand-dark: #0d3a66; --accent: #e0692a;
+    --bg: #eef1f4; --card: #ffffff; --card-sub: #f6f8fa; --right-panel-bg: #f9fafb;
+    --border: #d7dde3; --text: #1c2733; --muted: #667485;
+    --input-bg: #ffffff; --table-header: #eef2f6; --progress-bg: #e5e7eb;
+    --btn-edit-bg: #ffffff; --btn-edit-hover: #f5f5f5;
+    --ok-bg: #eef7f0; --ok-border: #b9dfc2; --ok-text: #27a745;
+    --bad-bg: #fbeceb; --bad-border: #eab6b0; --bad-text: #c0392b;
+    --warn-bg: #fff8e6; --warn-border: #f0d68a; --warn-text: #8a6d1f;
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231c2733' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  }
+
+  [data-theme="dark"] {
+    --brand: #5a9fd4; --brand-dark: #14508c; --accent: #ff9d5c;
+    --bg: #0f172a; --card: #1e293b; --card-sub: #0f172a; --right-panel-bg: #111827;
+    --border: #334155; --text: #f8fafc; --muted: #94a3b8;
+    --input-bg: #0f172a; --table-header: #334155; --progress-bg: #334155;
+    --btn-edit-bg: #1e293b; --btn-edit-hover: #334155;
+    --ok-bg: #064e3b; --ok-border: #047857; --ok-text: #34d399;
+    --bad-bg: #451a1a; --bad-border: #7f1d1d; --bad-text: #fca5a5;
+    --warn-bg: #453a1a; --warn-border: #7f6e1d; --warn-text: #fde047;
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23f8fafc' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 20px 16px 60px;
+    min-height: 100vh;
+  }
+  .page { max-width: 1200px; margin: 0 auto; }
+
+  /* 상단 탑바 */
+  .topbar {
+    background: var(--brand); color: #fff; padding: 20px 22px; border-radius: 14px 14px 0 0;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .topbar .brand { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+  .topbar .sub { font-size: 13px; opacity: .85; margin-top: 4px; }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+  .btn-top {
+    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35); color: #fff;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px; text-decoration: none; transition: all 0.2s ease;
+  }
+  .btn-top:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+
+  /* 인증 폼 */
+  .auth-container {
+    background: var(--card); border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 14px 14px; padding: 60px 20px; text-align: center; max-width: 1200px; margin: 0 auto;
+  }
+  .auth-box { max-width: 380px; margin: 0 auto; background: var(--card-sub); border: 1px solid var(--border); padding: 32px; border-radius: 12px; }
+  .auth-title { font-size: 20px; font-weight: 800; margin: 0 0 8px; color: var(--text); }
+  .auth-desc { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  
+  input[type="password"], input[type="text"], select {
+    width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 14px; background: var(--input-bg); font-family: inherit; color: var(--text); transition: all 0.2s;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(20, 80, 140, 0.15); }
+  select { cursor: pointer; appearance: none; background-image: var(--select-arrow); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+  .btn-primary {
+    width: 100%; padding: 12px; background: var(--brand); color: #fff; border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 14px; transition: all 0.2s;
+  }
+  .btn-primary:hover { background: var(--brand-dark); }
+
+  .auth-error { margin-top: 14px; font-size: 13px; color: var(--bad-text); display: none; font-weight: 600; }
+
+  /* 관리자 대시보드 메인 */
+  .admin-dashboard { display: none; background: var(--card); border: 1px solid var(--border); border-top: none; border-radius: 0 0 14px 14px; padding: 24px; }
+
+  /* 통계 요약 카드 */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--card-sub); border: 1px solid var(--border); padding: 18px; border-radius: 10px; }
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; margin-bottom: 6px; }
+  .stat-value { font-size: 22px; font-weight: 800; color: var(--brand); }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* 검색 및 필터 바 */
+  .filter-bar {
+    background: var(--card-sub); border: 1px solid var(--border); padding: 16px; border-radius: 10px;
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 20px;
+  }
+  .filter-group { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; flex: 1; min-width: 280px; }
+  .filter-group input { flex: 2; min-width: 200px; }
+  .filter-group select { flex: 1; min-width: 120px; }
+
+  .btn-reset {
+    padding: 10px 14px; background: var(--btn-edit-bg); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-reset:hover { background: var(--btn-edit-hover); }
+
+  /* 테이블 */
+  .table-wrapper { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+  table.admin-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+  table.admin-table th { background: var(--table-header); color: var(--muted); font-weight: 700; padding: 12px; border-bottom: 2px solid var(--border); }
+  table.admin-table td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+  table.admin-table tbody tr:hover { background: var(--card-sub); }
+
+  .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+  .badge.normal { background: var(--ok-bg); color: var(--ok-text); border: 1px solid var(--ok-border); }
+  .badge.jeju { background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
+  .badge.island { background: var(--bad-bg); color: var(--bad-text); border: 1px solid var(--bad-border); }
+
+  .empty-row td { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+  .loading-box { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div>
+      <div class="brand">두두택배 관리자 시스템</div>
+      <div class="sub">전체 접수 내역 열람 및 조회 통합 대시보드</div>
+    </div>
+    <div class="topbar-actions">
+      <a href="/" class="btn-top">📦 접수 페이지</a>
+      <button class="btn-top" id="themeToggle" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span> <span id="themeText">다크 모드</span>
+      </button>
+      <button class="btn-top" id="logoutBtn" onclick="logout()" style="display:none;">🚪 로그아웃</button>
+    </div>
+  </header>
+
+  <!-- 1. 비밀번호 인증 화면 -->
+  <section class="auth-container" id="authSection">
+    <div class="auth-box">
+      <h1 class="auth-title">관리자 인증</h1>
+      <p class="auth-desc">관리자 전용 비밀번호를 입력해주세요</p>
+      <form onsubmit="handleLogin(event)">
+        <input type="password" id="adminPassword" placeholder="비밀번호 입력" autocomplete="current-password" autofocus>
+        <button type="submit" class="btn-primary">로그인</button>
+      </form>
+      <div class="auth-error" id="authError">비밀번호가 올바르지 않습니다.</div>
+    </div>
+  </section>
+
+  <!-- 2. 관리자 메인 대시보드 -->
+  <main class="admin-dashboard" id="dashboardSection">
+    <!-- 통계 요약 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">총 접수 건수</div>
+        <div class="stat-value" id="statTotalCount">0건</div>
+        <div class="stat-sub">Supabase 누적 데이터</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">총 요금 매출</div>
+        <div class="stat-value" id="statTotalRevenue" style="color: var(--brand);">0원</div>
+        <div class="stat-sub">누적 접수 요금 합계</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">일반 지역</div>
+        <div class="stat-value" id="statNormalCount" style="color: var(--ok-text);">0건</div>
+        <div class="stat-sub">내륙 일반 배송</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">제주 / 도서산간</div>
+        <div class="stat-value" id="statIslandCount" style="color: var(--accent);">0건</div>
+        <div class="stat-sub">제주 및 지정 도서산간</div>
+      </div>
+    </div>
+
+    <!-- 검색 및 필터 -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <input type="text" id="searchInput" placeholder="검색 (운송장, 보낸사람, 받은사람, 물품명)" oninput="filterData()">
+        <select id="regionFilter" onchange="filterData()">
+          <option value="ALL">전체 권역</option>
+          <option value="일반">일반</option>
+          <option value="제주">제주</option>
+          <option value="도서산간">도서산간</option>
+        </select>
+        <select id="gradeFilter" onchange="filterData()">
+          <option value="ALL">전체 크기등급</option>
+          <option value="극소형">극소형</option>
+          <option value="소형">소형</option>
+          <option value="중형">중형</option>
+          <option value="대형">대형</option>
+        </select>
+        <select id="sortOrder" onchange="filterData()">
+          <option value="NEWEST">최신순</option>
+          <option value="OLDEST">과거순</option>
+          <option value="PRICE_DESC">요금 높은순</option>
+          <option value="PRICE_ASC">요금 낮은순</option>
+        </select>
+      </div>
+      <button class="btn-reset" onclick="resetFilters()">필터 초기화</button>
+    </div>
+
+    <!-- 데이터 테이블 -->
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>접수 일시</th>
+            <th>운송장 번호</th>
+            <th>보내는 분</th>
+            <th>받는 분</th>
+            <th>도착 지역</th>
+            <th>권역</th>
+            <th>물품명</th>
+            <th>요금무게</th>
+            <th>크기등급</th>
+            <th>결제 요금</th>
+            <th>도착 예정일</th>
+          </tr>
+        </thead>
+        <tbody id="shipmentTableBody">
+          <tr><td colspan="11" class="loading-box">데이터를 불러오는 중입니다...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>
+  let allShipments = [];
+
+  // ============================================================
+  // 인증 및 로그인 관리
+  // ============================================================
+  function checkAuth() {
+    const isAuthed = sessionStorage.getItem('adminAuthed') === 'true';
+    if (isAuthed) {
+      document.getElementById('authSection').style.display = 'none';
+      document.getElementById('dashboardSection').style.display = 'block';
+      document.getElementById('logoutBtn').style.display = 'flex';
+      fetchShipments();
+    } else {
+      document.getElementById('authSection').style.display = 'block';
+      document.getElementById('dashboardSection').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+    }
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const pwd = document.getElementById('adminPassword').value;
+    const errorEl = document.getElementById('authError');
+
+    if (pwd === 'admin') {
+      errorEl.style.display = 'none';
+      sessionStorage.setItem('adminAuthed', 'true');
+      checkAuth();
+    } else {
+      errorEl.style.display = 'block';
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('adminAuthed');
+    document.getElementById('adminPassword').value = '';
+    checkAuth();
+  }
+
+  // ============================================================
+  // 데이터 불러오기 및 통계/필터링
+  // ============================================================
+  async function fetchShipments() {
+    const tbody = document.getElementById('shipmentTableBody');
+    tbody.innerHTML = '<tr><td colspan="11" class="loading-box">데이터를 불러오는 중입니다...</td></tr>';
+
+    try {
+      const res = await fetch('/api/shipments');
+      const contentType = res.headers.get('content-type') || '';
+
+      if (!contentType.includes('application/json')) {
+        const text = await res.text();
+        throw new Error(`서버 응답 오류 (HTTP ${res.status}): 모듈 미설치 또는 환경변수를 확인하세요`);
+      }
+
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || '데이터 로딩 실패');
+      }
+
+      allShipments = json.data || [];
+      updateStats();
+      filterData();
+    } catch (err) {
+      console.error('Fetch error:', err);
+      tbody.innerHTML = `<tr><td colspan="11" class="empty-row" style="color: var(--bad-text);">데이터를 불러오지 못했습니다 (${err.message})</td></tr>`;
+    }
+  }
+
+  function updateStats() {
+    const totalCount = allShipments.length;
+    const totalRevenue = allShipments.reduce((sum, item) => sum + (item.price || 0), 0);
+    const normalCount = allShipments.filter(item => item.region_type === '일반').length;
+    const islandCount = allShipments.filter(item => item.region_type === '제주' || item.region_type === '도서산간').length;
+
+    document.getElementById('statTotalCount').textContent = totalCount.toLocaleString() + '건';
+    document.getElementById('statTotalRevenue').textContent = totalRevenue.toLocaleString() + '원';
+    document.getElementById('statNormalCount').textContent = normalCount.toLocaleString() + '건';
+    document.getElementById('statIslandCount').textContent = islandCount.toLocaleString() + '건';
+  }
+
+  function filterData() {
+    const query = document.getElementById('searchInput').value.toLowerCase().trim();
+    const region = document.getElementById('regionFilter').value;
+    const grade = document.getElementById('gradeFilter').value;
+    const sort = document.getElementById('sortOrder').value;
+
+    let filtered = allShipments.filter(item => {
+      const matchesSearch = !query || 
+        (item.tracking_no && item.tracking_no.toLowerCase().includes(query)) ||
+        (item.sender_name && item.sender_name.toLowerCase().includes(query)) ||
+        (item.receiver_name && item.receiver_name.toLowerCase().includes(query)) ||
+        (item.item_name && item.item_name.toLowerCase().includes(query));
+
+      const matchesRegion = region === 'ALL' || item.region_type === region;
+      const matchesGrade = grade === 'ALL' || item.size_grade === grade;
+
+      return matchesSearch && matchesRegion && matchesGrade;
+    });
+
+    // 정렬
+    filtered.sort((a, b) => {
+      if (sort === 'NEWEST') return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+      if (sort === 'OLDEST') return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+      if (sort === 'PRICE_DESC') return (b.price || 0) - (a.price || 0);
+      if (sort === 'PRICE_ASC') return (a.price || 0) - (b.price || 0);
+      return 0;
+    });
+
+    renderTable(filtered);
+  }
+
+  function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('regionFilter').value = 'ALL';
+    document.getElementById('gradeFilter').value = 'ALL';
+    document.getElementById('sortOrder').value = 'NEWEST';
+    filterData();
+  }
+
+  function renderTable(list) {
+    const tbody = document.getElementById('shipmentTableBody');
+    if (!list || list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="11" class="empty-row">조건에 해당하는 접수 내역이 없습니다</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = list.map(item => {
+      const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('ko-KR') : '-';
+      let regionBadge = `<span class="badge normal">일반</span>`;
+      if (item.region_type === '제주') regionBadge = `<span class="badge jeju">제주</span>`;
+      if (item.region_type === '도서산간') regionBadge = `<span class="badge island">도서산간</span>`;
+
+      return `
+        <tr>
+          <td>${dateStr}</td>
+          <td style="font-family: monospace; font-weight: 700; color: var(--brand);">${item.tracking_no || '-'}</td>
+          <td>${item.sender_name || '-'}</td>
+          <td>${item.receiver_name || '-'}</td>
+          <td>${item.receiver_area || '-'}</td>
+          <td>${regionBadge}</td>
+          <td>${item.item_name || '-'}</td>
+          <td>${item.billed_weight_kg ? item.billed_weight_kg + 'kg' : '-'}</td>
+          <td>${item.size_grade || '-'}</td>
+          <td style="font-weight: 700;">${(item.price || 0).toLocaleString()}원</td>
+          <td>${item.eta_date || '-'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // ============================================================
+  // 테마 관리
+  // ============================================================
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    updateThemeBtn(theme === 'dark');
+  }
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      applyTheme(savedTheme);
+    } else {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(prefersDark ? 'dark' : 'light');
+    }
+  }
+
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(newTheme);
+  }
+
+  function updateThemeBtn(isDark) {
+    const icon = document.getElementById('themeIcon');
+    const text = document.getElementById('themeText');
+    if (isDark) {
+      if (icon) icon.textContent = '☀️';
+      if (text) text.textContent = '라이트 모드';
+    } else {
+      if (icon) icon.textContent = '🌙';
+      if (text) text.textContent = '다크 모드';
+    }
+  }
+
+  // 초기화
+  document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    checkAuth();
+  });
+</script>
+</body>
+</html>
