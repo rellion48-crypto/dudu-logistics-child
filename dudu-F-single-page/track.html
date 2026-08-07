@@ -483,7 +483,13 @@
 
       document.getElementById('resEtaDate').textContent = item.eta_date || item.etaDate || '미정';
       const dbStatus = item.status || '접수';
-      document.getElementById('resStatus').textContent = dbStatus;
+      const createdAt = item.created_at || item.createdAt || new Date().toISOString();
+      const etaDate = item.eta_date || item.etaDate;
+
+      // 현재 상태 계산 (타임라인과 동일 로직)
+      const currentStatus = determineStatus(createdAt, etaDate, dbStatus);
+      document.getElementById('resStatus').textContent = currentStatus;
+
       document.getElementById('resTrackingNo').textContent = item.tracking_no || item.trackingNo;
       document.getElementById('resSender').textContent = item.sender_name || item.senderName || '-';
       document.getElementById('resReceiver').textContent = item.receiver_name || item.receiverName || '-';
@@ -492,9 +498,8 @@
       document.getElementById('resGrade').textContent = item.size_grade || item.sizeGrade || '-';
       document.getElementById('resPrice').textContent = item.price ? Number(item.price).toLocaleString('ko-KR') + '원' : '-';
 
-      // 타임라인 업데이트 (created_at 필드 기반)
-      const createdAt = item.created_at || item.createdAt || new Date().toISOString();
-      updateTimeline(createdAt, item.eta_date || item.etaDate, dbStatus);
+      // 타임라인 업데이트 (계산된 현재 상태 기반)
+      updateTimeline(createdAt, etaDate, currentStatus);
 
       resultContainer.classList.add('show');
     } catch (err) {
