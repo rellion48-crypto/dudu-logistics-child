@@ -146,23 +146,40 @@
   }
 
   .loading-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center;
-    z-index: 9999;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);
+    display: flex; opacity: 0; visibility: hidden; justify-content: center; align-items: center; z-index: 999999;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
   }
-  .loading-overlay.show { display: flex; }
-  .loading-card {
-    background: var(--card); padding: 32px; border-radius: 12px; text-align: center;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  .loading-overlay.show { opacity: 1; visibility: visible; }
+
+  .loading-modal {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 32px 24px; width: 90%; max-width: 420px; text-align: center;
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.4);
+    transform: scale(0.9); transition: transform 0.25s ease;
   }
-  .loading-spinner {
-    width: 48px; height: 48px; border: 4px solid var(--border);
-    border-top-color: var(--brand); border-radius: 50%; animation: spin 1s linear infinite;
-    margin: 0 auto 16px;
+  .loading-overlay.show .loading-modal { transform: scale(1); }
+
+  .truck-track {
+    position: relative; width: 100%; height: 54px; background: var(--card-sub);
+    border-bottom: 2px dashed var(--border); border-radius: 10px; margin: 18px 0; overflow: hidden;
+    display: flex; align-items: flex-end;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { font-size: 16px; font-weight: 600; color: var(--text); margin: 0; }
-  .loading-subtext { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .truck-emoji {
+    position: absolute; left: -60px; bottom: 4px; font-size: 36px;
+    animation: driveTruck 1.8s infinite linear; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    transform: scaleX(-1); display: inline-block;
+  }
+
+  @keyframes driveTruck {
+    0% { left: -60px; }
+    100% { left: 105%; }
+  }
+
+  .loading-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+  .loading-subtitle { font-size: 14.5px; color: var(--brand); font-weight: 700; min-height: 24px; transition: all 0.3s; }
+  .loading-subdesc { font-size: 12px; color: var(--muted); margin-top: 8px; }
 
   @media (max-width: 600px) {
     .left-panel { padding: 24px 20px; }
@@ -180,18 +197,14 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-card">
-    <div class="loading-spinner"></div>
-    <p class="loading-text">접수 처리 중...</p>
-    <p class="loading-subtext">잠시만 기다려주세요</p>
-  </div>
-</div>
 
 <div class="page">
   <div class="topbar">
     <div class="topbar-left">
-      <div class="brand">두두택배 접수</div>
+      <div class="brand" style="display: flex; align-items: center; gap: 10px;">
+        <img src="icon.png" alt="두두택배 로고" style="height: 34px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
+        <span>두두택배 접수</span>
+      </div>
       <div class="sub">단계별 입력으로 깔끔하게 접수하세요</div>
     </div>
     <div style="display: flex; align-items: center; gap: 10px;">
@@ -446,6 +459,18 @@
       </thead>
       <tbody id="listBody"><tr class="empty-row"><td colspan="5">아직 접수 내역이 없습니다</td></tr></tbody>
     </table>
+  </div>
+</div>
+
+<!-- 택배차 이동 로딩 오버레이 모달 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-modal">
+    <div class="loading-title">📦 두두택배 접수 등록 중</div>
+    <div class="truck-track">
+      <div class="truck-emoji">🚚</div>
+    </div>
+    <div class="loading-subtitle" id="loadingDynamicMsg">신나게 배송 정보를 등록하고 있어요!</div>
+    <div class="loading-subdesc">잠시만 기다려주시면 운송장이 발급됩니다 ⚡</div>
   </div>
 </div>
 
@@ -923,6 +948,13 @@
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  const SENSE_MESSAGES = [
+    "🚚 열심히 배송중이에요! 조금만 기다려주세요...",
+    "💨 두두택배 차가 부지런히 달리고 있습니다!",
+    "🎁 소중한 물품 안전하게 물류 센터로 연결 중...",
+    "⚡ 접수 데이터 등록 완료 직전입니다!"
+  ];
+
   async function submitShipment() {
     if (!validateStep(1) || !validateStep(2)) return;
 
@@ -954,12 +986,24 @@
       sizeGrade: grade, price, etaDate: formatDateISO(etaDate),
     };
 
-    // 로딩 상태 표시
+    // 로딩 모달 표시 및 문구 롤링 시작
     const loadingOverlay = document.getElementById('loadingOverlay');
+    const msgEl = document.getElementById('loadingDynamicMsg');
+    let msgIdx = 0;
+    if (msgEl) msgEl.textContent = SENSE_MESSAGES[0];
     loadingOverlay.classList.add('show');
 
+    const intervalId = setInterval(() => {
+      if (msgEl) {
+        msgIdx = (msgIdx + 1) % SENSE_MESSAGES.length;
+        msgEl.textContent = SENSE_MESSAGES[msgIdx];
+      }
+    }, 600);
+
+    // 택배차가 달리는 이모지 애니메이션 및 문구를 1.6초간 먼저 확실히 표출
+    await new Promise(r => setTimeout(r, 1600));
+
     try {
-      // Vercel API로 전송
       const response = await fetch('/api/shipments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -971,9 +1015,6 @@
         throw new Error(error.error || 'Failed to save shipment');
       }
 
-      const result = await response.json();
-
-      // 로컬 저장 (목록 표시용)
       savedShipments.push(record);
       renderList();
       showReceipt(record);
@@ -982,7 +1023,7 @@
       console.error('Submission error:', err);
       alert('접수 중 오류가 발생했습니다: ' + err.message);
     } finally {
-      // 로딩 상태 숨기기
+      clearInterval(intervalId);
       loadingOverlay.classList.remove('show');
     }
   }
