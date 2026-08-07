@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>두두택배 - 운송장 배송 조회 & 도착예정일</title>
+<title>두두택배 - 운송장 배송 조회 & 영수증 출력</title>
 <style>
   :root, [data-theme="light"] {
     --brand: #14508c; --brand-dark: #0d3a66; --accent: #e0692a;
@@ -76,49 +76,107 @@
 
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  .eta-card {
-    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
-    color: #ffffff; border-radius: 14px; padding: 28px 24px; text-align: center;
-    margin-bottom: 24px; box-shadow: 0 10px 20px rgba(13, 58, 102, 0.2);
-  }
-  .eta-label { font-size: 14px; font-weight: 600; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
-  .eta-date { font-size: 32px; font-weight: 900; margin: 10px 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-  .status-badge {
-    display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 800;
-    background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(4px); margin-top: 4px;
-  }
-
-  .detail-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-    background: var(--card-sub); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
-  }
-  .detail-item { font-size: 13px; }
-  .detail-label { color: var(--muted); font-size: 12px; margin-bottom: 4px; font-weight: 600; }
-  .detail-val { font-weight: 700; color: var(--text); word-break: break-all; }
-
   .error-card {
     background: var(--bad-bg); border: 1px solid var(--bad-border); color: var(--bad-text);
     border-radius: 12px; padding: 24px; text-align: center; display: none; margin-top: 10px;
   }
   .error-card.show { display: block; animation: fadeIn 0.3s ease-out; }
 
+  /* ============================================================
+     영수증 스타일 (Receipt UI)
+     ============================================================ */
+  .receipt-paper {
+    background: var(--card); border: 2px solid var(--border);
+    border-radius: 16px; padding: 32px 28px; max-width: 580px; margin: 0 auto;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08); position: relative;
+  }
+  
+  .receipt-header {
+    text-align: center; border-bottom: 2px dashed var(--border); padding-bottom: 20px; margin-bottom: 20px;
+  }
+  .receipt-logo { height: 38px; width: auto; margin-bottom: 8px; }
+  .receipt-title { font-size: 20px; font-weight: 900; letter-spacing: 1px; color: var(--brand); }
+  .receipt-subtitle { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1.5px; }
+
+  /* 바코드 그래픽 */
+  .barcode-box {
+    margin: 16px 0; text-align: center;
+  }
+  .barcode-lines {
+    font-family: 'Courier New', Courier, monospace; font-size: 30px; letter-spacing: -2.5px;
+    line-height: 0.8; font-weight: 900; color: var(--text); opacity: 0.85; user-select: none;
+  }
+  .barcode-num {
+    font-family: monospace; font-size: 14px; font-weight: 700; color: var(--muted); margin-top: 6px; letter-spacing: 2px;
+  }
+
+  /* ETA 하이라이트 배너 */
+  .receipt-eta-box {
+    background: var(--card-sub); border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 18px; text-align: center; margin-bottom: 24px;
+  }
+  .receipt-eta-label { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .receipt-eta-val { font-size: 28px; font-weight: 900; color: var(--brand); margin: 6px 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+  .receipt-status-badge {
+    display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 800;
+    background: var(--ok-bg); border: 1px solid var(--ok-border); color: var(--ok-text);
+  }
+
+  /* 영수증 표 내역 */
+  .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13.5px; }
+  .receipt-table tr { border-bottom: 1px dotted var(--border); }
+  .receipt-table tr:last-child { border-bottom: none; }
+  .receipt-table td { padding: 10px 0; }
+  .receipt-table .label { font-weight: 600; color: var(--muted); text-align: left; width: 40%; }
+  .receipt-table .value { font-weight: 700; color: var(--text); text-align: right; word-break: break-all; }
+
+  .receipt-total {
+    border-top: 2px solid var(--text); border-bottom: 2px solid var(--text);
+    padding: 14px 0; display: flex; justify-content: space-between; align-items: center;
+    margin-top: 10px; margin-bottom: 24px;
+  }
+  .receipt-total-label { font-size: 15px; font-weight: 800; color: var(--text); }
+  .receipt-total-val { font-size: 22px; font-weight: 900; color: var(--brand); }
+
+  .receipt-footer {
+    text-align: center; font-size: 12px; color: var(--muted); line-height: 1.6;
+    border-top: 1px dashed var(--border); padding-top: 16px; margin-top: 20px;
+  }
+
+  /* PDF 저장 / 인쇄 액션 버튼 */
+  .action-row {
+    display: flex; justify-content: center; gap: 12px; margin-top: 24px;
+  }
+  .btn-print {
+    padding: 12px 24px; background: var(--brand); color: #fff; border: none; border-radius: 10px;
+    font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(20, 80, 140, 0.2);
+  }
+  .btn-print:hover { background: var(--brand-dark); transform: translateY(-1px); }
+
   @media (max-width: 600px) {
     .search-box { flex-direction: column; }
     .btn-search { width: 100%; }
-    .detail-grid { grid-template-columns: 1fr; }
-    .eta-date { font-size: 26px; }
+    .receipt-paper { padding: 24px 18px; }
+    .receipt-eta-val { font-size: 24px; }
   }
-  .sample-chips {
-    display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
-    margin-top: -16px; margin-bottom: 24px; font-size: 12px;
+
+  /* ============================================================
+     PDF / 인쇄 전용 스타일 (@media print)
+     ============================================================ */
+  @media print {
+    body { background: #ffffff !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; }
+    .topbar, .search-box, .error-card, .action-row, #themeToggle, .btn-top { display: none !important; }
+    .page { max-width: 100% !important; margin: 0 !important; }
+    .main-card { border: none !important; box-shadow: none !important; padding: 0 !important; background: transparent !important; }
+    .receipt-paper {
+      border: 2px solid #000000 !important; box-shadow: none !important;
+      max-width: 100% !important; border-radius: 0 !important; padding: 30px !important;
+      background: #ffffff !important; color: #000000 !important;
+    }
+    .receipt-title, .receipt-eta-val, .receipt-total-val { color: #000000 !important; }
+    .receipt-status-badge { border: 1px solid #000000 !important; color: #000000 !important; background: transparent !important; }
   }
-  .chip-label { color: var(--muted); font-weight: 600; }
-  .chip {
-    background: var(--card-sub); border: 1px solid var(--border); border-radius: 6px;
-    padding: 4px 10px; font-size: 12px; color: var(--brand); font-family: monospace; font-weight: 700;
-    cursor: pointer; transition: all 0.2s;
-  }
-  .chip:hover { background: var(--brand); color: #fff; transform: translateY(-1px); }
 </style>
 </head>
 <body>
@@ -129,7 +187,7 @@
         <img src="icon.png" alt="두두택배 로고" style="height: 32px; width: auto; object-fit: contain;">
         <span>두두택배 운송장 조회</span>
       </div>
-      <div class="sub">운송장 번호 하나로 도착 예정일을 바로 확인하세요</div>
+      <div class="sub">운송장 번호 하나로 도착 예정일과 영수증을 바로 출력하세요</div>
     </div>
     <div class="topbar-actions">
       <a href="/" class="btn-top">📦 접수 페이지</a>
@@ -145,13 +203,6 @@
       <input type="text" id="trackingInput" class="search-input" placeholder="운송장 번호 입력 (예: 1100000010)" autocomplete="off">
       <button class="btn-search" onclick="searchTracking()">🔍 조회하기</button>
     </div>
-    <div class="sample-chips">
-      <span class="chip-label">추천 예시:</span>
-      <button class="chip" onclick="quickSearch('1100000010')">1100000010</button>
-      <button class="chip" onclick="quickSearch('1100000053')">1100000053</button>
-      <button class="chip" onclick="quickSearch('1200000350')">1200000350</button>
-      <button class="chip" onclick="quickSearch('2100000180')">2100000180</button>
-    </div>
 
     <div class="error-card" id="errorCard">
       <div style="font-size: 16px; font-weight: 800; margin-bottom: 6px;">⚠️ 운송장을 찾을 수 없습니다</div>
@@ -159,29 +210,62 @@
     </div>
 
     <div class="result-container" id="resultContainer">
-      <div class="eta-card">
-        <div class="eta-label">🚚 도착 예정일</div>
-        <div class="eta-date" id="resEtaDate">2026-08-05</div>
-        <div class="status-badge" id="resStatus">배송완료</div>
+      <!-- 실물 영수증 스타일 페이퍼 -->
+      <div class="receipt-paper">
+        <div class="receipt-header">
+          <img src="icon.png" alt="두두택배" class="receipt-logo">
+          <div class="receipt-title">두두택배 배송 영수증</div>
+          <div class="receipt-subtitle">DUDU LOGISTICS PARCEL RECEIPT</div>
+        </div>
+
+        <div class="barcode-box">
+          <div class="barcode-lines">||| | ||||| ||| ||||||| | |||||||| |||| |</div>
+          <div class="barcode-num" id="resTrackingNo"></div>
+        </div>
+
+        <div class="receipt-eta-box">
+          <div class="receipt-eta-label">🚚 도착 예정일</div>
+          <div class="receipt-eta-val" id="resEtaDate"></div>
+          <div class="receipt-status-badge" id="resStatus">배송 준비 중</div>
+        </div>
+
+        <table class="receipt-table">
+          <tr>
+            <td class="label">보내는 분</td>
+            <td class="value" id="resSender"></td>
+          </tr>
+          <tr>
+            <td class="label">받는 분</td>
+            <td class="value" id="resReceiver"></td>
+          </tr>
+          <tr>
+            <td class="label">도착 지역</td>
+            <td class="value" id="resArea"></td>
+          </tr>
+          <tr>
+            <td class="label">물품명</td>
+            <td class="value" id="resItem"></td>
+          </tr>
+          <tr>
+            <td class="label">규격 등급</td>
+            <td class="value" id="resGrade"></td>
+          </tr>
+        </table>
+
+        <div class="receipt-total">
+          <span class="receipt-total-label">청구 금액</span>
+          <span class="receipt-total-val" id="resPrice"></span>
+        </div>
+
+        <div class="receipt-footer">
+          소중한 물품을 안전하게 배송하겠습니다.<br>
+          이용해 주셔서 감사합니다. (고객센터: 1588-0000)
+        </div>
       </div>
 
-      <div class="detail-grid">
-        <div class="detail-item">
-          <div class="detail-label">운송장 번호</div>
-          <div class="detail-val" id="resTrackingNo" style="font-family: monospace; font-size: 15px; color: var(--brand);"></div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">보내는 분 / 받는 분</div>
-          <div class="detail-val"><span id="resSender"></span> → <span id="resReceiver"></span> (<span id="resArea"></span>)</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">물품명 / 규격 등급</div>
-          <div class="detail-val"><span id="resItem"></span> (<span id="resGrade"></span>)</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">청구 요금</div>
-          <div class="detail-val" id="resPrice"></div>
-        </div>
+      <!-- PDF 저장 / 인쇄 버튼 -->
+      <div class="action-row">
+        <button class="btn-print" onclick="window.print()">🖨️ PDF 저장 / 영수증 인쇄</button>
       </div>
     </div>
   </main>
@@ -216,40 +300,37 @@
     if (e.key === 'Enter') searchTracking();
   });
 
-  function quickSearch(no) {
-    document.getElementById('trackingInput').value = no;
-    searchTracking();
-  }
-
   async function searchTracking() {
     const rawInput = document.getElementById('trackingInput').value.trim();
-    const input = rawInput.replace(/[^0-9a-zA-Z]/g, '');
+    const cleanNo = rawInput.replace(/[^0-9a-zA-Z]/g, '');
     const errorCard = document.getElementById('errorCard');
     const resultContainer = document.getElementById('resultContainer');
 
-    if (!input) {
+    if (!cleanNo) {
       alert('운송장 번호를 입력해주세요');
       return;
     }
 
     try {
-      const response = await fetch(`/api/shipments?tracking_no=${encodeURIComponent(input)}`);
+      const response = await fetch(`/api/shipments?tracking_no=${encodeURIComponent(cleanNo)}`);
       if (!response.ok) throw new Error('서버 응답 오류');
 
       const json = await response.json();
       const records = json.data || [];
 
-      if (records.length === 0) {
+      // Supabase DB에서 가져온 레코드 중 해당 운송장 번호와 100% 일치하는 데이터 선택
+      const item = records.find(r => String(r.tracking_no || r.trackingNo || '').trim() === cleanNo);
+
+      if (!item) {
         resultContainer.classList.remove('show');
         errorCard.classList.add('show');
         return;
       }
 
       errorCard.classList.remove('show');
-      const item = records[0];
 
       document.getElementById('resEtaDate').textContent = item.eta_date || item.etaDate || '미정';
-      document.getElementById('resStatus').textContent = item.status || '배송 준비 중';
+      document.getElementById('resStatus').textContent = item.status || '접수';
       document.getElementById('resTrackingNo').textContent = item.tracking_no || item.trackingNo;
       document.getElementById('resSender').textContent = item.sender_name || item.senderName || '-';
       document.getElementById('resReceiver').textContent = item.receiver_name || item.receiverName || '-';

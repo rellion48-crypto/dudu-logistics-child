@@ -18,8 +18,8 @@ export default async function handler(req, res) {
       let query = supabase.from('shipments').select('*');
 
       if (rawTarget) {
-        const cleanNo = rawTarget.trim().replace(/[^0-9a-zA-Z]/g, '');
-        query = query.or(`tracking_no.eq.${cleanNo},tracking_no.ilike.%${cleanNo}%`);
+        const cleanNo = rawTarget.trim();
+        query = query.eq('tracking_no', cleanNo).order('created_at', { ascending: false });
       } else {
         query = query.order('created_at', { ascending: false });
       }
