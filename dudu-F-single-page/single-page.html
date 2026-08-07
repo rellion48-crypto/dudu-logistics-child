@@ -55,9 +55,20 @@
   }
   .form-panel { padding: 22px; border-right: 1px solid var(--border); }
   .calc-panel { padding: 22px; background: var(--calc-bg); }
+  .mobile-tabs { display: none; gap: 0; margin: -22px -22px 0 -22px; border-bottom: 1px solid var(--border); }
+  .mobile-tabs button { flex: 1; padding: 14px 12px; background: #f5f8fc; border: none; border-bottom: 3px solid transparent;
+    font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+  .mobile-tabs button.active { background: #fff; color: var(--brand); border-bottom-color: var(--brand); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
   @media (max-width: 900px) {
     .layout { grid-template-columns: 1fr; }
     .form-panel { border-right: none; border-bottom: 1px solid var(--border); }
+    .mobile-tabs { display: flex; }
+    .calc-panel { padding: 0; background: var(--card); border-top: 1px solid var(--border); border-radius: 0; }
+    .calc-panel h2 { display: none; }
+    .tab-content { padding: 22px; }
   }
 
   h2 { font-size: 16px; margin: 0 0 14px; }
@@ -70,7 +81,12 @@
   .req { color: var(--bad-text); font-weight: 700; font-size: 11px; }
   input[type="text"], input[type="number"], select {
     width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px;
-    font-size: 15px; background: #fff; font-family: inherit;
+    font-size: 15px; background: #fff; font-family: inherit; color: var(--text);
+  }
+  select {
+    cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231c2733' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 36px;
   }
   .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
   .inline-warning { min-height: 18px; margin-top: 6px; font-size: 12.5px; }
@@ -138,13 +154,41 @@
       <div class="field-grid">
         <div class="field">
           <label for="branch">접수 지점 <span class="req">필수</span></label>
-          <input type="text" id="branch" oninput="recalc()" placeholder="서울지점" autocomplete="off">
-          <p class="hint">등록된 지점: 서울지점, 용산지점, 대전지점, 진주지점, 거제지점, 울산지점. 목록에 없는 이름을 적으면 운송장 앞자리가 00으로 나갑니다.</p>
+          <select id="branch" onchange="recalc()" aria-label="접수 지점" aria-required="true">
+            <option value="">-- 접수 지점을 선택하세요 --</option>
+            <option value="11">서울지점</option>
+            <option value="12">용산지점</option>
+            <option value="21">대전지점</option>
+            <option value="31">진주지점</option>
+            <option value="32">거제지점</option>
+            <option value="41">울산지점</option>
+          </select>
+          <p class="hint">운송장 번호 앞 2자리는 지점 코드입니다. 규정 §1</p>
         </div>
         <div class="field">
           <label for="receiverArea">도착 지역 <span class="req">필수</span></label>
-          <input type="text" id="receiverArea" oninput="recalc()" placeholder="서울" autocomplete="off">
-          <p class="hint">제주는 제주 권역, 울릉도·백령도·흑산도·거문도·추자도는 도서산간, 나머지는 전부 일반입니다. 거제와 진주도 일반입니다.</p>
+          <select id="receiverArea" onchange="recalc()" aria-label="도착 지역" aria-required="true">
+            <option value="">-- 도착 지역을 선택하세요 --</option>
+            <option value="서울">서울</option>
+            <option value="경기">경기</option>
+            <option value="강원">강원</option>
+            <option value="충북">충북</option>
+            <option value="충남">충남</option>
+            <option value="전북">전북</option>
+            <option value="전남">전남</option>
+            <option value="경북">경북</option>
+            <option value="경남">경남</option>
+            <option value="대구">대구</option>
+            <option value="부산">부산</option>
+            <option value="울산">울산</option>
+            <option value="대전">대전</option>
+            <option value="광주">광주</option>
+            <option value="인천">인천</option>
+            <option value="세종">세종</option>
+            <option value="제주">제주</option>
+            <option value="도서산간">도서산간 (울릉도, 백령도, 흑산도, 거문도, 추자도)</option>
+          </select>
+          <p class="hint">거제·진주는 일반 지역입니다. 규정 §2</p>
         </div>
 
         <div class="field">
@@ -187,28 +231,38 @@
 
       <div class="soft-confirm" id="softConfirmBox" style="display:none">
         <div id="softConfirmText"></div>
-        <label><input type="checkbox" id="staffConfirm" onchange="recalc()"> 직원이 확인했습니다 (50만원 이하)</label>
+        <label><input type="checkbox" id="staffConfirm" onchange="recalc()"> <strong>직원 확인:</strong> 위 품목이 50만원 이하임을 확인했습니다</label>
       </div>
 
-      <div class="error-box" id="errorBox"></div>
+      <div class="error-box" id="errorBox" role="alert" aria-live="polite"></div>
 
       <div class="btn-row">
-        <button type="button" class="reset-btn" onclick="resetForm()">새로 입력</button>
-        <button type="button" class="submit-btn" id="submitBtn" disabled onclick="submitShipment()">접수 완료</button>
+        <button type="button" class="reset-btn" onclick="resetForm()" aria-label="새로 입력">새로 입력</button>
+        <button type="button" class="submit-btn" id="submitBtn" disabled onclick="submitShipment()" aria-label="접수 완료">접수 완료</button>
       </div>
     </section>
 
     <section class="calc-panel">
-      <h2>계산 과정 (규정 그대로, 숫자를 대입해서 보여줍니다)</h2>
-      <div id="calcSteps">
-        <div class="calc-pending">무게・가로・세로・높이를 모두 입력하면 계산 과정이 여기 순서대로 표시됩니다.</div>
+      <div class="mobile-tabs">
+        <button class="tab-btn active" data-tab="calc" onclick="switchTab('calc')">계산과정</button>
+        <button class="tab-btn" data-tab="rate" onclick="switchTab('rate')">요금표</button>
       </div>
 
-      <h3>요금표 - 4등급 x 3권역 12종 전부 (규정 §3)</h3>
-      <table class="rate-table" id="rateTable">
-        <thead><tr><th>등급</th><th>기준(세변합 / 무게)</th><th>일반</th><th>제주</th><th>도서산간</th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <h2>계산 과정 (규정 그대로, 숫자를 대입해서 보여줍니다)</h2>
+
+      <div id="calcTab" class="tab-content active">
+        <div id="calcSteps">
+          <div class="calc-pending">무게・가로・세로・높이를 모두 입력하면 계산 과정이 여기 순서대로 표시됩니다.</div>
+        </div>
+      </div>
+
+      <div id="rateTab" class="tab-content">
+        <h3>요금표 - 4등급 x 3권역 12종 전부 (규정 §3)</h3>
+        <table class="rate-table" id="rateTable">
+          <thead><tr><th>등급</th><th>기준(세변합 / 무게)</th><th>일반</th><th>제주</th><th>도서산간</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </section>
   </div>
 
@@ -254,10 +308,9 @@
   // 지키는 방식이다. '원거리'・'도서' 같은 규정에 없는 이름은 이 파일
   // 어디서도 쓰지 않는다.
   const ISLAND_AREAS = ['울릉도', '백령도', '흑산도', '거문도', '추자도'];
-  // 260807 지점이 텍스트 입력이라 이름에서 코드를 찾는다. 목록에 없으면 00.
-  function branchCodeOf(name) {
-    const hit = BRANCHES.find(b => b.name === name);
-    return hit ? hit.code : '00';
+  // 지점 코드는 select의 value로부터 직접 받는다.
+  function branchCodeOf(code) {
+    return code && code.length === 2 ? code : '00';
   }
   function determineRegion(area) {
     if (area === '제주') return '제주';
@@ -498,7 +551,7 @@
       `${formatDateISO(t.date)}(${WEEKDAY_KO[t.dow]}) - ${t.isWeekend ? '주말이라 제외' : `영업일 ${t.countedAt}일째`}`
     ).join('<br>');
     html += step('7', `도착 예정일 (규정 §6, §8-7 - ${region}은 접수 후 +${ETA_BUSINESS_DAYS[region]}영업일)`,
-      `${etaDetail}<br>도착 예정 -> <b>${formatDateISO(etaInfo.finalDate)}(${WEEKDAY_KO[etaInfo.finalDate.getDay()]})</b>`);
+      `<b style="font-size:16px;color:var(--brand-dark);">${formatDateISO(etaInfo.finalDate)}(${WEEKDAY_KO[etaInfo.finalDate.getDay()]})</b><details style="margin-top:8px;"><summary style="cursor:pointer;font-size:12px;color:var(--muted);">영업일 계산 과정 보기</summary><div style="margin-top:8px;font-size:12px;line-height:1.6;">${etaDetail}</div></details>`);
 
     document.getElementById('calcSteps').innerHTML = html;
     renderRateTable(gt.matched, region);
@@ -541,7 +594,16 @@
       const sumCm = width + height + depth;
       const billedWeightKg = Math.max(weight, (width * height * depth) / 6000);
       const grade = determineGrade(sumCm, billedWeightKg);
-      if (!grade) errors.push(`대형 상한 초과로 접수할 수 없습니다(세 변의 합 ${sumCm.toFixed(1)}cm, 요금 무게 ${billedWeightKg.toFixed(2)}kg - 규정 §3).`);
+      if (!grade) {
+        const sumExcess = Math.max(0, sumCm - 160);
+        const weightExcess = Math.max(0, billedWeightKg - 25);
+        let msg = `대형 상한 초과로 접수할 수 없습니다.`;
+        const details = [];
+        if (sumExcess > 0) details.push(`세 변의 합이 ${sumExcess.toFixed(1)}cm 초과`);
+        if (weightExcess > 0) details.push(`요금 무게가 ${weightExcess.toFixed(2)}kg 초과`);
+        if (details.length > 0) msg += ` (${details.join(', ')})`;
+        errors.push(msg);
+      }
     }
     return errors;
   }
@@ -617,8 +679,8 @@
     const errors = validateAll();
     if (errors.length > 0) { updateSubmitState(); return; }
 
-    const branchName = document.getElementById('branch').value.trim();
-    const branchCode = branchCodeOf(branchName);
+    const branchCode = document.getElementById('branch').value;
+    const branchName = BRANCHES.find(b => b.code === branchCode)?.name || '미등록지점';
     const senderName = document.getElementById('senderName').value.trim();
     const receiverName = document.getElementById('receiverName').value.trim();
     const area = document.getElementById('receiverArea').value;
@@ -671,7 +733,15 @@
     document.getElementById('receiverArea').value = '';
     document.getElementById('staffConfirm').checked = false;
     document.getElementById('softConfirmBox').style.display = 'none';
+    document.getElementById('receiptSection').style.display = 'none';
     recalc();
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tab + 'Tab').classList.add('active');
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
   }
 
   renderList();
