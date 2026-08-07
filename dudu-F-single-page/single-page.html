@@ -129,9 +129,21 @@
   .receipt-section.show { display: block; }
   .receipt-card { background: var(--ok-bg); border: 2px solid var(--ok-border); border-radius: 12px; padding: 24px; text-align: center; }
   .receipt-title { font-weight: 800; font-size: 16px; color: var(--ok-text); }
-  .receipt-tno { font-size: 24px; font-weight: 800; color: var(--brand); margin: 12px 0; font-family: monospace; }
+  .receipt-tno { font-size: 24px; font-weight: 800; color: var(--brand); margin: 12px 0; font-family: monospace; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
   .receipt-line { font-size: 13px; margin-top: 6px; color: var(--text); }
   .receipt-price { font-size: 28px; font-weight: 800; color: var(--brand); margin: 14px 0; }
+
+  .btn-copy {
+    background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 12px; font-size: 13px; font-weight: 700; color: var(--brand);
+    cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .btn-copy:hover { background: var(--brand); color: #fff; transform: translateY(-1px); }
+  .btn-track-link {
+    display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: var(--brand); color: #fff;
+    border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; transition: all 0.2s; margin-top: 14px;
+  }
+  .btn-track-link:hover { background: var(--brand-dark); transform: translateY(-1px); }
 
   .list-section { margin-top: 24px; }
   .list-section table { width: 100%; border-collapse: collapse; font-size: 12px; color: var(--text); }
@@ -207,7 +219,10 @@
       </div>
       <div class="sub">단계별 입력으로 깔끔하게 접수하세요</div>
     </div>
-    <div style="display: flex; align-items: center; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <button class="theme-toggle" onclick="playClickSound(); window.location.href='/track'" title="운송장 배송 조회 이동">
+        🔍 배송 조회
+      </button>
       <button class="theme-toggle" onclick="playClickSound(); window.location.href='/admin'" title="관리자 페이지 이동">
         🔒 관리자
       </button>
@@ -920,6 +935,27 @@
   // ============================================================
   const savedShipments = [];
 
+  function copyTrackingNo(tNo) {
+    if (!tNo) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(tNo).then(() => {
+        alert(`📋 운송장 번호 [${tNo}] 가 클립보드에 복사되었습니다!`);
+      }).catch(() => fallbackCopy(tNo));
+    } else {
+      fallbackCopy(tNo);
+    }
+  }
+
+  function fallbackCopy(tNo) {
+    const input = document.createElement('input');
+    input.value = tNo;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    alert(`📋 운송장 번호 [${tNo}] 가 클립보드에 복사되었습니다!`);
+  }
+
   function renderList() {
     const body = document.getElementById('listBody');
     if (savedShipments.length === 0) {
@@ -928,7 +964,11 @@
     }
     body.innerHTML = savedShipments.map(s => `
       <tr>
-        <td>${s.trackingNo}</td><td>${s.senderName}</td><td>${s.receiverName}</td>
+        <td>
+          <span style="font-family:monospace;font-weight:700;color:var(--brand);margin-right:6px;">${s.trackingNo}</span>
+          <button class="btn-copy" onclick="copyTrackingNo('${s.trackingNo}')" style="padding:2px 6px;font-size:11px;">📋 복사</button>
+        </td>
+        <td>${s.senderName}</td><td>${s.receiverName}</td>
         <td>${s.itemName}</td><td>${formatWon(s.price)}</td>
       </tr>`).join('');
   }
@@ -939,11 +979,17 @@
     el.innerHTML = `
       <div class="receipt-card">
         <div class="receipt-title">✓ 접수가 완료됐습니다</div>
-        <div class="receipt-tno">${record.trackingNo}</div>
+        <div class="receipt-tno">
+          <span>${record.trackingNo}</span>
+          <button class="btn-copy" onclick="copyTrackingNo('${record.trackingNo}')" title="운송장 번호 복사">📋 복사</button>
+        </div>
         <div class="receipt-line">${record.branchName} / ${record.senderName} → ${record.receiverName}</div>
         <div class="receipt-line">${record.itemName} (${record.sizeGrade})</div>
         <div class="receipt-price">${formatWon(record.price)}</div>
         <div class="receipt-line">도착 예정: ${record.etaDate}</div>
+        <div>
+          <a href="/track?tracking_no=${record.trackingNo}" class="btn-track-link">🔍 바로 배송 상태 조회하기</a>
+        </div>
       </div>`;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }

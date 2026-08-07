@@ -5,6 +5,10 @@
       "destination": "/dudu-F-single-page/admin.html"
     },
     {
+      "source": "/track",
+      "destination": "/dudu-F-single-page/track.html"
+    },
+    {
       "source": "/",
       "destination": "/dudu-F-single-page/single-page.html"
     }

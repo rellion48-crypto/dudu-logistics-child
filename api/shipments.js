@@ -12,10 +12,19 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
-      const { data, error } = await supabase
-        .from('shipments')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { tracking_no, trackingNo } = req.query;
+      const rawTarget = tracking_no || trackingNo;
+
+      let query = supabase.from('shipments').select('*');
+
+      if (rawTarget) {
+        const cleanNo = rawTarget.trim().replace(/[^0-9a-zA-Z]/g, '');
+        query = query.or(`tracking_no.eq.${cleanNo},tracking_no.ilike.%${cleanNo}%`);
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Supabase select error:', error);
