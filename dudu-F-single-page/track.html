@@ -154,11 +154,63 @@
   }
   .btn-print:hover { background: var(--brand-dark); transform: translateY(-1px); }
 
+  /* ============================================================
+     타임라인 시각화 스타일
+     ============================================================ */
+  .timeline-container {
+    margin: 28px 0; padding: 24px; background: var(--card-sub); border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .timeline-header { font-size: 14px; font-weight: 700; color: var(--muted); margin-bottom: 18px; }
+
+  .timeline {
+    display: flex; gap: 0; align-items: center; position: relative;
+  }
+
+  .timeline-step {
+    flex: 1; display: flex; flex-direction: column; align-items: center; position: relative;
+  }
+
+  .timeline-step:not(:last-child)::after {
+    content: ''; position: absolute; top: 24px; left: 50%; width: 100%; height: 2px;
+    background: var(--border); z-index: 0;
+  }
+
+  .timeline-step.completed:not(:last-child)::after { background: var(--ok-text); }
+  .timeline-step.active:not(:last-child)::after { background: var(--accent); }
+
+  .timeline-dot {
+    width: 48px; height: 48px; border-radius: 50%; background: var(--card); border: 3px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative; z-index: 1;
+    margin-bottom: 12px;
+  }
+
+  .timeline-step.completed .timeline-dot { background: var(--ok-bg); border-color: var(--ok-text); }
+  .timeline-step.active .timeline-dot { background: var(--card); border-color: var(--accent); box-shadow: 0 0 0 4px rgba(224, 105, 42, 0.15); }
+  .timeline-step.pending .timeline-dot { background: var(--card-sub); border-color: var(--border); }
+  .timeline-step.failed .timeline-dot { background: var(--bad-bg); border-color: var(--bad-text); }
+
+  .timeline-label {
+    font-size: 13px; font-weight: 600; color: var(--text); text-align: center; width: 80px;
+  }
+
+  .timeline-date {
+    font-size: 11px; color: var(--muted); margin-top: 4px; text-align: center;
+  }
+
+  .timeline-step.completed .timeline-label { color: var(--ok-text); }
+  .timeline-step.active .timeline-label { color: var(--accent); }
+  .timeline-step.failed .timeline-label { color: var(--bad-text); }
+
   @media (max-width: 600px) {
     .search-box { flex-direction: column; }
     .btn-search { width: 100%; }
     .receipt-paper { padding: 24px 18px; }
     .receipt-eta-val { font-size: 24px; }
+    .timeline { gap: 8px; }
+    .timeline-dot { width: 40px; height: 40px; font-size: 18px; }
+    .timeline-label { font-size: 12px; width: 70px; }
   }
 
   /* ============================================================
@@ -229,6 +281,27 @@
           <div class="receipt-status-badge" id="resStatus">배송 준비 중</div>
         </div>
 
+        <div class="timeline-container">
+          <div class="timeline-header">📋 배송 진행 상태</div>
+          <div class="timeline">
+            <div class="timeline-step" id="step-receipt">
+              <div class="timeline-dot">📦</div>
+              <div class="timeline-label">접수</div>
+              <div class="timeline-date" id="step-receipt-date"></div>
+            </div>
+            <div class="timeline-step" id="step-shipping">
+              <div class="timeline-dot">🚚</div>
+              <div class="timeline-label">배송중</div>
+              <div class="timeline-date" id="step-shipping-date"></div>
+            </div>
+            <div class="timeline-step" id="step-complete">
+              <div class="timeline-dot">✅</div>
+              <div class="timeline-label">완료</div>
+              <div class="timeline-date" id="step-complete-date"></div>
+            </div>
+          </div>
+        </div>
+
         <table class="receipt-table">
           <tr>
             <td class="label">보내는 분</td>
@@ -295,6 +368,85 @@
     applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
   }
 
+  // 상태 판단 함수
+  function determineStatus(createdAt, etaDate, dbStatus) {
+    const now = new Date();
+    const created = new Date(createdAt);
+    const eta = new Date(etaDate);
+
+    // DB 상태 우선 (반품, 미배송 등)
+    if (dbStatus && (dbStatus.includes('반품') || dbStatus.includes('미배송'))) {
+      return dbStatus;
+    }
+
+    // 접수: created 이후 1시간 이내
+    const elapsedMinutes = (now - created) / (1000 * 60);
+    if (elapsedMinutes <= 60) return '접수';
+
+    // 배송중: created 이후 1시간 경과 AND 현재 < eta 날짜
+    if (elapsedMinutes > 60 && now < eta) return '배송중';
+
+    // 완료: 현재 >= eta 날짜
+    if (now >= eta) return '배송완료';
+
+    return dbStatus || '배송중';
+  }
+
+  // 타임라인 업데이트 함수
+  function updateTimeline(createdAt, etaDate, dbStatus) {
+    const currentStatus = determineStatus(createdAt, etaDate, dbStatus);
+
+    const stepReceipt = document.getElementById('step-receipt');
+    const stepShipping = document.getElementById('step-shipping');
+    const stepComplete = document.getElementById('step-complete');
+
+    // 초기화
+    [stepReceipt, stepShipping, stepComplete].forEach(el => {
+      el.classList.remove('completed', 'active', 'pending', 'failed');
+      el.classList.add('pending');
+    });
+
+    if (currentStatus.includes('반품') || currentStatus.includes('미배송')) {
+      // 실패 상태: 모든 단계 실패 표시
+      [stepReceipt, stepShipping, stepComplete].forEach(el => {
+        el.classList.remove('pending');
+        el.classList.add('failed');
+      });
+    } else if (currentStatus === '접수') {
+      stepReceipt.classList.remove('pending');
+      stepReceipt.classList.add('active');
+      const created = new Date(createdAt);
+      document.getElementById('step-receipt-date').textContent = created.toLocaleDateString('ko-KR');
+    } else if (currentStatus === '배송중') {
+      stepReceipt.classList.remove('pending');
+      stepReceipt.classList.add('completed');
+      const created = new Date(createdAt);
+      document.getElementById('step-receipt-date').textContent = created.toLocaleDateString('ko-KR');
+
+      stepShipping.classList.remove('pending');
+      stepShipping.classList.add('active');
+      const shippingStart = new Date(createdAt);
+      shippingStart.setHours(shippingStart.getHours() + 1);
+      document.getElementById('step-shipping-date').textContent = shippingStart.toLocaleDateString('ko-KR');
+    } else if (currentStatus === '배송완료') {
+      [stepReceipt, stepShipping].forEach(el => {
+        el.classList.remove('pending');
+        el.classList.add('completed');
+      });
+      const created = new Date(createdAt);
+      document.getElementById('step-receipt-date').textContent = created.toLocaleDateString('ko-KR');
+
+      const shippingStart = new Date(createdAt);
+      shippingStart.setHours(shippingStart.getHours() + 1);
+      document.getElementById('step-shipping-date').textContent = shippingStart.toLocaleDateString('ko-KR');
+
+      stepComplete.classList.remove('pending');
+      stepComplete.classList.add('completed');
+      const eta = new Date(etaDate);
+      document.getElementById('step-complete-date').textContent = eta.toLocaleDateString('ko-KR');
+    }
+  }
+
   // 엔터 키 지원
   document.getElementById('trackingInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') searchTracking();
@@ -330,7 +482,8 @@
       errorCard.classList.remove('show');
 
       document.getElementById('resEtaDate').textContent = item.eta_date || item.etaDate || '미정';
-      document.getElementById('resStatus').textContent = item.status || '접수';
+      const dbStatus = item.status || '접수';
+      document.getElementById('resStatus').textContent = dbStatus;
       document.getElementById('resTrackingNo').textContent = item.tracking_no || item.trackingNo;
       document.getElementById('resSender').textContent = item.sender_name || item.senderName || '-';
       document.getElementById('resReceiver').textContent = item.receiver_name || item.receiverName || '-';
@@ -338,6 +491,10 @@
       document.getElementById('resItem').textContent = item.item_name || item.itemName || '-';
       document.getElementById('resGrade').textContent = item.size_grade || item.sizeGrade || '-';
       document.getElementById('resPrice').textContent = item.price ? Number(item.price).toLocaleString('ko-KR') + '원' : '-';
+
+      // 타임라인 업데이트 (created_at 필드 기반)
+      const createdAt = item.created_at || item.createdAt || new Date().toISOString();
+      updateTimeline(createdAt, item.eta_date || item.etaDate, dbStatus);
 
       resultContainer.classList.add('show');
     } catch (err) {

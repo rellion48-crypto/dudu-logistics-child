@@ -222,6 +222,91 @@
     .btn-row { flex-direction: column; }
     .btn { width: 100%; }
   }
+
+  /* ============================================================
+     완료 팝업 스타일
+     ============================================================ */
+  .completion-modal {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center;
+    z-index: 9999; animation: fadeIn 0.3s ease-out;
+  }
+
+  .completion-modal.show { display: flex; }
+
+  .completion-popup {
+    background: var(--card); border-radius: 16px; padding: 40px 32px; max-width: 420px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2); text-align: center; animation: popupSlideIn 0.4s ease-out;
+  }
+
+  @keyframes popupSlideIn {
+    from { opacity: 0; transform: translateY(-30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .completion-icon {
+    font-size: 64px; margin-bottom: 16px; display: block; animation: popupBounce 0.6s ease-out;
+  }
+
+  @keyframes popupBounce {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .completion-title {
+    font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 8px;
+  }
+
+  .completion-subtitle {
+    font-size: 14px; color: var(--muted); margin-bottom: 28px; line-height: 1.6;
+  }
+
+  .tracking-display {
+    background: var(--card-sub); border: 2px solid var(--brand); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;
+  }
+
+  .tracking-number {
+    font-family: monospace; font-size: 16px; font-weight: 700; color: var(--text);
+    flex: 1; user-select: all;
+  }
+
+  .btn-copy {
+    background: var(--brand); color: #fff; border: none; border-radius: 8px;
+    padding: 10px 16px; cursor: pointer; font-size: 13px; font-weight: 700;
+    transition: all 0.2s; white-space: nowrap;
+  }
+
+  .btn-copy:hover { background: var(--brand-dark); transform: translateY(-2px); }
+  .btn-copy.copied { background: var(--ok-text); }
+
+  .popup-buttons {
+    display: flex; gap: 12px;
+  }
+
+  .btn-popup {
+    flex: 1; padding: 12px 16px; border: none; border-radius: 10px;
+    font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+  }
+
+  .btn-popup-primary {
+    background: var(--brand); color: #fff;
+  }
+
+  .btn-popup-primary:hover { background: var(--brand-dark); transform: translateY(-2px); }
+
+  .btn-popup-secondary {
+    background: var(--card-sub); color: var(--text); border: 1px solid var(--border);
+  }
+
+  .btn-popup-secondary:hover { background: var(--border); }
+
+  @media (max-width: 480px) {
+    .completion-popup { padding: 32px 24px; max-width: 90%; }
+    .completion-title { font-size: 20px; }
+    .completion-icon { font-size: 56px; }
+  }
 </style>
 <!-- Vercel Analytics -->
 <script>
@@ -1127,6 +1212,11 @@
       renderList();
       showReceipt(record);
       resetForm();
+
+      // 팝업 표시
+      setTimeout(() => {
+        showCompletionPopup(trackingNo);
+      }, 500);
     } catch (err) {
       console.error('Submission error:', err);
       alert('접수 중 오류가 발생했습니다: ' + err.message);
@@ -1134,6 +1224,37 @@
       clearInterval(intervalId);
       loadingOverlay.classList.remove('show');
     }
+  }
+
+  function showCompletionPopup(trackingNo) {
+    document.getElementById('popupTrackingNo').textContent = trackingNo;
+    document.getElementById('completionModal').classList.add('show');
+    document.getElementById('copyBtn').textContent = '📋 복사';
+    document.getElementById('copyBtn').classList.remove('copied');
+  }
+
+  function closeCompletionPopup() {
+    document.getElementById('completionModal').classList.remove('show');
+  }
+
+  function copyTrackingNo() {
+    const trackingNo = document.getElementById('popupTrackingNo').textContent;
+    navigator.clipboard.writeText(trackingNo).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '✅ 복사됨';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '📋 복사';
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(() => {
+      alert('복사에 실패했습니다');
+    });
+  }
+
+  function goToTrackPage() {
+    const trackingNo = document.getElementById('popupTrackingNo').textContent;
+    window.location.href = `/track.html?tracking_no=${trackingNo}`;
   }
 
   function resetForm() {
@@ -1216,5 +1337,27 @@
     startApp();
   }
 </script>
+
+<!-- 완료 팝업 모달 -->
+<div class="completion-modal" id="completionModal">
+  <div class="completion-popup">
+    <span class="completion-icon">🎉</span>
+    <div class="completion-title">접수가 완료되었습니다!</div>
+    <div class="completion-subtitle">
+      운송장번호를 복사하여<br>배송 상태를 언제든 확인하세요
+    </div>
+
+    <div class="tracking-display">
+      <span class="tracking-number" id="popupTrackingNo">1100000010</span>
+      <button class="btn-copy" id="copyBtn" onclick="copyTrackingNo()">📋 복사</button>
+    </div>
+
+    <div class="popup-buttons">
+      <button class="btn-popup btn-popup-secondary" onclick="closeCompletionPopup()">닫기</button>
+      <button class="btn-popup btn-popup-primary" onclick="goToTrackPage()">배송 조회</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
