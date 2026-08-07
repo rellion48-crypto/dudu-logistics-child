@@ -1,0 +1,9 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/dudu-F-single-page/single-page.html"
+    }
+  ]
+}
