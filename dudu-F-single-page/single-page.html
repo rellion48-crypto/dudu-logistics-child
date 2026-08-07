@@ -4,11 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>두두택배 접수 - 단계별 입력</title>
-<!-- Vercel Analytics -->
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments) };
-</script>
-<script defer src="/_vercel/insights/script.js"></script>
 <style>
   :root {
     --brand: #14508c; --brand-dark: #0d3a66; --accent: #e0692a;
@@ -136,6 +131,11 @@
     .btn { width: 100%; }
   }
 </style>
+<!-- Vercel Analytics -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments) };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 <div class="page">
@@ -823,7 +823,7 @@
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
-  function submitShipment() {
+  async function submitShipment() {
     if (!validateStep(1) || !validateStep(2)) return;
 
     const branchCode = document.getElementById('branch').value;
@@ -849,14 +849,35 @@
 
     const record = {
       trackingNo, branchName, senderName, receiverName, receiverArea: area,
-      regionType: region, itemName, billedWeightKg: Math.round(billedWeightKg * 10) / 10,
+      regionType: region, itemName, weightKg: weight, widthCm: width, heightCm: height, depthCm: depth,
+      billedWeightKg: Math.round(billedWeightKg * 10) / 10,
       sizeGrade: grade, price, etaDate: formatDateISO(etaDate),
     };
 
-    savedShipments.push(record);
-    renderList();
-    showReceipt(record);
-    resetForm();
+    try {
+      // Vercel API로 전송
+      const response = await fetch('/api/shipments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(record),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save shipment');
+      }
+
+      const result = await response.json();
+
+      // 로컬 저장 (목록 표시용)
+      savedShipments.push(record);
+      renderList();
+      showReceipt(record);
+      resetForm();
+    } catch (err) {
+      console.error('Submission error:', err);
+      alert('접수 중 오류가 발생했습니다: ' + err.message);
+    }
   }
 
   function resetForm() {
