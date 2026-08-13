@@ -121,105 +121,174 @@
   .loading-box { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
 
   /* ============================================================
-     AI Q&A 챗봇 모달 및 FAB 스타일
+     AI Q&A 메신저 모달 및 캐릭터 FAB 스타일 (확대/메신저형)
      ============================================================ */
   .qna-fab {
     position: fixed; bottom: 24px; right: 24px;
     background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-    color: #ffffff; padding: 12px 20px; border-radius: 50px;
-    box-shadow: 0 8px 24px rgba(20, 80, 140, 0.35); cursor: pointer;
-    display: flex; align-items: center; gap: 8px; z-index: 9990;
+    color: #ffffff; padding: 8px 18px 8px 10px; border-radius: 50px;
+    box-shadow: 0 10px 28px rgba(20, 80, 140, 0.4); cursor: pointer;
+    display: flex; align-items: center; gap: 10px; z-index: 9990;
     font-size: 14.5px; font-weight: 700;
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
   }
   .qna-fab:hover {
-    transform: translateY(-4px) scale(1.05);
-    box-shadow: 0 12px 30px rgba(20, 80, 140, 0.45);
+    transform: translateY(-4px) scale(1.06);
+    box-shadow: 0 14px 36px rgba(20, 80, 140, 0.55);
   }
-  .qna-fab-badge {
-    background: var(--accent); color: #fff; font-size: 10px; font-weight: 800;
-    padding: 2px 6px; border-radius: 10px; text-transform: uppercase;
+  .qna-fab-img-wrap {
+    position: relative; width: 42px; height: 42px; border-radius: 50%; overflow: visible;
+  }
+  .qna-fab-img {
+    width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+    border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  .qna-fab-status {
+    position: absolute; bottom: 0; right: 0; width: 12px; height: 12px;
+    background: #27a745; border: 2px solid #ffffff; border-radius: 50%;
   }
 
   .qna-modal {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(5px);
+    background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px);
     display: none; align-items: center; justify-content: center;
     z-index: 99999; animation: fadeIn 0.25s ease-out; padding: 16px;
   }
   .qna-modal.show { display: flex; }
 
   .qna-box {
-    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
-    width: 100%; max-width: 540px; height: 680px; max-height: 90vh;
-    display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+    background: var(--card); border: 1px solid var(--border); border-radius: 24px;
+    width: 100%; max-width: 780px; height: 82vh; max-height: 850px; min-height: 520px;
+    display: flex; flex-direction: column; box-shadow: 0 28px 70px rgba(0, 0, 0, 0.35);
     overflow: hidden; animation: popupSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .qna-header {
-    background: var(--brand); color: #fff; padding: 16px 20px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #fff; padding: 16px 24px;
     display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
   }
-  .qna-header-title { font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-  .qna-header-sub { font-size: 11.5px; opacity: 0.85; margin-top: 2px; }
-  .qna-header-actions { display: flex; align-items: center; gap: 8px; }
+  .qna-header-left { display: flex; align-items: center; gap: 14px; }
+  .qna-header-avatar {
+    position: relative; width: 48px; height: 48px; flex-shrink: 0;
+  }
+  .qna-header-avatar img {
+    width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+    border: 2px solid #ffffff; box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  }
+  .qna-header-title { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .qna-header-sub { font-size: 12px; opacity: 0.9; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
+  .online-badge {
+    display: inline-block; width: 8px; height: 8px; background: #34d399; border-radius: 50%;
+    box-shadow: 0 0 8px #34d399;
+  }
+  .qna-header-actions { display: flex; align-items: center; gap: 10px; }
   .btn-gradio-link {
-    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
-    color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600;
-    text-decoration: none; cursor: pointer; transition: all 0.2s;
+    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35);
+    color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    text-decoration: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;
   }
-  .btn-gradio-link:hover { background: rgba(255,255,255,0.35); }
+  .btn-gradio-link:hover { background: rgba(255,255,255,0.35); transform: translateY(-1px); }
   .btn-qna-close {
-    background: transparent; border: none; color: #fff; font-size: 20px;
-    cursor: pointer; padding: 0 4px; opacity: 0.85;
+    background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 20px;
+    cursor: pointer; width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
   }
-  .btn-qna-close:hover { opacity: 1; }
+  .btn-qna-close:hover { background: rgba(255,255,255,0.3); }
 
+  .qna-chips-wrap {
+    padding: 12px 20px; background: var(--card-sub); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .qna-chips-label { font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; }
   .qna-chips {
-    padding: 12px 16px; background: var(--card-sub); border-bottom: 1px solid var(--border);
-    display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; scrollbar-width: thin;
+    display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; width: 100%;
   }
   .qna-chip {
     background: var(--card); border: 1px solid var(--border); color: var(--text);
-    padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 600;
-    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.03);
   }
-  .qna-chip:hover { border-color: var(--brand); color: var(--brand); transform: translateY(-1px); }
+  .qna-chip:hover { border-color: var(--brand); color: var(--brand); transform: translateY(-1.5px); box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
 
   .qna-messages {
-    flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
-  }
-  .qna-msg {
-    max-width: 85%; padding: 12px 16px; border-radius: 14px; font-size: 13.5px;
-    line-height: 1.55; word-break: break-word; white-space: pre-wrap;
-  }
-  .qna-msg.bot {
-    background: var(--card-sub); color: var(--text); border: 1px solid var(--border);
-    align-self: flex-start; border-bottom-left-radius: 4px;
-  }
-  .qna-msg.user {
-    background: var(--brand); color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px;
-  }
-  .qna-source {
-    margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border);
-    font-size: 11.5px; color: var(--brand); font-weight: 700;
+    flex: 1; padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px;
+    background: var(--card-sub);
   }
 
+  /* 메신저 대화버블 디자인 */
+  .messenger-row {
+    display: flex; gap: 12px; max-width: 82%; animation: fadeIn 0.2s ease-out;
+  }
+  .messenger-row.bot { align-self: flex-start; }
+  .messenger-row.user { align-self: flex-end; flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+    border: 2px solid var(--brand); box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  .msg-content-group { display: flex; flex-direction: column; gap: 4px; }
+  .messenger-row.user .msg-content-group { align-items: flex-end; }
+
+  .msg-sender-name { font-size: 11.5px; font-weight: 700; color: var(--muted); margin-left: 2px; }
+
+  .qna-msg {
+    padding: 14px 18px; border-radius: 18px; font-size: 14px;
+    line-height: 1.6; word-break: break-word; white-space: pre-wrap;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05); position: relative;
+  }
+  .messenger-row.bot .qna-msg {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+  }
+  .messenger-row.user .qna-msg {
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #ffffff; border-top-right-radius: 4px;
+  }
+
+  .msg-time { font-size: 10.5px; color: var(--muted); opacity: 0.8; margin-top: 2px; }
+  .messenger-row.user .msg-time { text-align: right; }
+
+  .qna-source {
+    margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border);
+    font-size: 12px; color: var(--brand); font-weight: 800; display: flex; align-items: center; gap: 4px;
+  }
+
+  .typing-indicator {
+    display: inline-flex; align-items: center; gap: 4px; padding: 12px 18px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px; border-top-left-radius: 4px;
+  }
+  .typing-dot {
+    width: 6px; height: 6px; background: var(--brand); border-radius: 50%;
+    animation: typingBounce 1.2s infinite ease-in-out;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-6px); } }
+
   .qna-input-area {
-    padding: 12px 16px; background: var(--card); border-top: 1px solid var(--border);
-    display: flex; gap: 8px;
+    padding: 16px 20px; background: var(--card); border-top: 1px solid var(--border);
+    display: flex; gap: 10px; align-items: center;
+  }
+  .qna-input-wrapper {
+    flex: 1; position: relative; display: flex; align-items: center;
   }
   .qna-input {
-    flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;
-    font-size: 13.5px; background: var(--input-bg); color: var(--text);
+    width: 100%; padding: 14px 18px; border: 1.5px solid var(--border); border-radius: 28px;
+    font-size: 14px; background: var(--input-bg); color: var(--text);
+    transition: all 0.2s;
   }
-  .qna-input:focus { outline: none; border-color: var(--brand); }
+  .qna-input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(20,80,140,0.15); }
   .btn-qna-send {
-    background: var(--brand); color: #fff; border: none; padding: 10px 18px;
-    border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; transition: all 0.2s;
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #fff; border: none; padding: 14px 24px; border-radius: 28px;
+    font-weight: 800; font-size: 14.5px; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(20,80,140,0.25);
   }
-  .btn-qna-send:hover { background: var(--brand-dark); }
+  .btn-qna-send:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(20,80,140,0.35); }
 </style>
 </head>
 <body>
@@ -618,6 +687,17 @@
     }
   }
 
+  function getCurrentTimeString() {
+    const d = new Date();
+    const hrs = String(d.getHours()).padStart(2, '0');
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    return `${hrs}:${mins}`;
+  }
+
+  function escapeHtml(str) {
+    return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
   function sendQnaMessage() {
     const input = document.getElementById('qnaInput');
     const msgContainer = document.getElementById('qnaMessages');
@@ -625,27 +705,65 @@
     const question = input.value.trim();
     if (!question) return;
 
-    const userDiv = document.createElement('div');
-    userDiv.className = 'qna-msg user';
-    userDiv.textContent = question;
-    msgContainer.appendChild(userDiv);
+    if (typeof playClickSound === 'function') playClickSound();
+
+    const userRow = document.createElement('div');
+    userRow.className = 'messenger-row user';
+    userRow.innerHTML = `
+      <div class="msg-content-group">
+        <div class="qna-msg">${escapeHtml(question)}</div>
+        <div class="msg-time">${getCurrentTimeString()}</div>
+      </div>
+    `;
+    msgContainer.appendChild(userRow);
 
     input.value = '';
     msgContainer.scrollTop = msgContainer.scrollHeight;
 
-    setTimeout(() => {
-      const result = searchFaqRag(question);
-      const botDiv = document.createElement('div');
-      botDiv.className = 'qna-msg bot';
+    const typingId = 'typing-' + Date.now();
+    const typingRow = document.createElement('div');
+    typingRow.className = 'messenger-row bot';
+    typingRow.id = typingId;
+    typingRow.innerHTML = `
+      <img src="dudu_bot_avatar.jpg" alt="두두봇" class="msg-avatar">
+      <div class="msg-content-group">
+        <div class="msg-sender-name">두두봇</div>
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    `;
+    msgContainer.appendChild(typingRow);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
 
+    setTimeout(() => {
+      const typingEl = document.getElementById(typingId);
+      if (typingEl) typingEl.remove();
+
+      const result = searchFaqRag(question);
+      const botRow = document.createElement('div');
+      botRow.className = 'messenger-row bot';
+
+      let msgHtml = '';
       if (result && result.faq) {
-        botDiv.innerHTML = `${result.faq.text}<div class="qna-source">📌 출처: ${result.faq.title}</div>`;
+        msgHtml = `${result.faq.text}<div class="qna-source">📌 출처: ${result.faq.title}</div>`;
       } else {
-        botDiv.innerHTML = `등록된 FAQ에서 정확한 답변을 찾지 못했습니다.<br><br>전화 문의: 고객센터 <strong>1688-1211</strong> (평일 09:00~18:00)<br>Gradio RAG 챗봇: <a href="http://127.0.0.1:7860" target="_blank" style="color:var(--brand); font-weight:700;">127.0.0.1:7860</a><div class="qna-source">📌 출처: 없음</div>`;
+        msgHtml = `등록된 FAQ에서 정확한 답변을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>1688-1211</strong> (평일 09:00~18:00)<br>🌐 Gradio RAG 챗봇: <a href="http://127.0.0.1:7860" target="_blank" style="color:var(--brand); font-weight:800;">127.0.0.1:7860</a><div class="qna-source">📌 출처: 없음</div>`;
       }
-      msgContainer.appendChild(botDiv);
+
+      botRow.innerHTML = `
+        <img src="dudu_bot_avatar.jpg" alt="두두봇" class="msg-avatar">
+        <div class="msg-content-group">
+          <div class="msg-sender-name">두두봇</div>
+          <div class="qna-msg">${msgHtml}</div>
+          <div class="msg-time">${getCurrentTimeString()}</div>
+        </div>
+      `;
+      msgContainer.appendChild(botRow);
       msgContainer.scrollTop = msgContainer.scrollHeight;
-    }, 200);
+    }, 350);
   }
 
   // 초기화
@@ -655,20 +773,27 @@
   });
 </script>
 
-<!-- Floating Action Button (Q&A 챗봇) -->
-<div id="qnaFab" class="qna-fab" onclick="openQnaModal()" title="두두택배 AI Q&A 상담">
-  <span class="qna-fab-badge">AI</span>
-  <span class="qna-fab-icon">💬</span>
-  <span class="qna-fab-text">Q&A 챗봇</span>
+<!-- Floating Action Button (귀여운 두두봇 메신저 FAB) -->
+<div id="qnaFab" class="qna-fab" onclick="if(typeof playClickSound === 'function') playClickSound(); openQnaModal()" title="두두봇 AI Q&A 메신저">
+  <div class="qna-fab-img-wrap">
+    <img src="dudu_bot_avatar.jpg" alt="두두봇 아바타" class="qna-fab-img">
+    <div class="qna-fab-status"></div>
+  </div>
+  <span class="qna-fab-text">두두봇 Q&A</span>
 </div>
 
-<!-- AI Q&A 챗봇 모달 -->
+<!-- AI Q&A 메신저 모달 (확대된 메신저 UI) -->
 <div class="qna-modal" id="qnaModal" onclick="if(event.target === this) closeQnaModal()">
   <div class="qna-box">
     <div class="qna-header">
-      <div>
-        <div class="qna-header-title">💬 두두택배 AI Q&A 챗봇</div>
-        <div class="qna-header-sub">FAQ 지식 기반 RAG 자동 응답 서비스</div>
+      <div class="qna-header-left">
+        <div class="qna-header-avatar">
+          <img src="dudu_bot_avatar.jpg" alt="두두봇 캐릭터">
+        </div>
+        <div>
+          <div class="qna-header-title">두두봇 AI CS 메신저 🤖</div>
+          <div class="qna-header-sub"><span class="online-badge"></span> 24시간 실시간 FAQ 자동 응답</div>
+        </div>
       </div>
       <div class="qna-header-actions">
         <a href="http://127.0.0.1:7860" target="_blank" class="btn-gradio-link" title="Gradio 실습 앱(127.0.0.1:7860) 열기">🌐 Gradio 앱</a>
@@ -676,25 +801,39 @@
       </div>
     </div>
 
-    <div class="qna-chips">
-      <button class="qna-chip" onclick="askQnaChip('오늘 점심은 무엇인가요?')">📌 점심 메뉴 FAQ</button>
-      <button class="qna-chip" onclick="askQnaChip('배송 소요 기간은?')">📦 배송 소요 기간</button>
-      <button class="qna-chip" onclick="askQnaChip('택배 운임 및 요금')">💰 운임 및 요금</button>
-      <button class="qna-chip" onclick="askQnaChip('택배 취소 방법')">❌ 취소 방법</button>
-      <button class="qna-chip" onclick="askQnaChip('국내택배와 반값택배 차이')">🚚 반값택배 차이</button>
-      <button class="qna-chip" onclick="askQnaChip('두두 택배 서비스')">⭐ 두두 택배</button>
+    <div class="qna-chips-wrap">
+      <span class="qna-chips-label">💡 추천 질문:</span>
+      <div class="qna-chips">
+        <button class="qna-chip" onclick="askQnaChip('오늘 점심은 무엇인가요?')">📌 점심 메뉴 FAQ</button>
+        <button class="qna-chip" onclick="askQnaChip('배송 소요 기간은?')">📦 배송 소요 기간</button>
+        <button class="qna-chip" onclick="askQnaChip('택배 운임 및 요금')">💰 운임 및 요금</button>
+        <button class="qna-chip" onclick="askQnaChip('택배 취소 방법')">❌ 취소 방법</button>
+        <button class="qna-chip" onclick="askQnaChip('국내택배와 반값택배 차이')">🚚 반값택배 차이</button>
+        <button class="qna-chip" onclick="askQnaChip('두두 택배 서비스')">⭐ 두두 택배</button>
+      </div>
     </div>
 
     <div class="qna-messages" id="qnaMessages">
-      <div class="qna-msg bot">
-        안녕하세요! <strong>두두택배 AI Q&A 챗봇</strong>입니다. 📦<br>
-        배송, 접수 규정, 요금, 취소 방법 등 무엇이든 물어보세요!
+      <div class="messenger-row bot">
+        <img src="dudu_bot_avatar.jpg" alt="두두봇" class="msg-avatar">
+        <div class="msg-content-group">
+          <div class="msg-sender-name">두두봇</div>
+          <div class="qna-msg">
+            안녕하세요! <strong>두두택배 AI 마스코트 두두봇</strong>입니다. 📦<br>
+            배송 조회, 접수 규정, 택배 요금, 취소 안내 등 무엇이든 편하게 물어보세요!
+          </div>
+          <div class="msg-time">방금 전</div>
+        </div>
       </div>
     </div>
 
     <div class="qna-input-area">
-      <input type="text" id="qnaInput" class="qna-input" placeholder="질문을 입력하세요... (예: 배송 소요 기간, 취소 방법)" onkeypress="handleQnaKeyPress(event)">
-      <button class="btn-qna-send" onclick="sendQnaMessage()">전송</button>
+      <div class="qna-input-wrapper">
+        <input type="text" id="qnaInput" class="qna-input" placeholder="궁금한 내용을 메신저로 물어보세요... (예: 배송 기간, 요금)" onkeypress="handleQnaKeyPress(event)">
+      </div>
+      <button class="btn-qna-send" onclick="sendQnaMessage()">
+        <span>전송</span> 🚀
+      </button>
     </div>
   </div>
 </div>
