@@ -228,7 +228,109 @@
     }
     .receipt-title, .receipt-eta-val, .receipt-total-val { color: #000000 !important; }
     .receipt-status-badge { border: 1px solid #000000 !important; color: #000000 !important; background: transparent !important; }
+    .qna-fab, .qna-modal { display: none !important; }
   }
+
+  /* ============================================================
+     AI Q&A 챗봇 모달 및 FAB 스타일
+     ============================================================ */
+  .qna-fab {
+    position: fixed; bottom: 24px; right: 24px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #ffffff; padding: 12px 20px; border-radius: 50px;
+    box-shadow: 0 8px 24px rgba(20, 80, 140, 0.35); cursor: pointer;
+    display: flex; align-items: center; gap: 8px; z-index: 9990;
+    font-size: 14.5px; font-weight: 700;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .qna-fab:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 30px rgba(20, 80, 140, 0.45);
+  }
+  .qna-fab-badge {
+    background: var(--accent); color: #fff; font-size: 10px; font-weight: 800;
+    padding: 2px 6px; border-radius: 10px; text-transform: uppercase;
+  }
+
+  .qna-modal {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(5px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 99999; animation: fadeIn 0.25s ease-out; padding: 16px;
+  }
+  .qna-modal.show { display: flex; }
+
+  .qna-box {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
+    width: 100%; max-width: 540px; height: 680px; max-height: 90vh;
+    display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden; animation: popupSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .qna-header {
+    background: var(--brand); color: #fff; padding: 16px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .qna-header-title { font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .qna-header-sub { font-size: 11.5px; opacity: 0.85; margin-top: 2px; }
+  .qna-header-actions { display: flex; align-items: center; gap: 8px; }
+  .btn-gradio-link {
+    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
+    color: #fff; padding: 5px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600;
+    text-decoration: none; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-gradio-link:hover { background: rgba(255,255,255,0.35); }
+  .btn-qna-close {
+    background: transparent; border: none; color: #fff; font-size: 20px;
+    cursor: pointer; padding: 0 4px; opacity: 0.85;
+  }
+  .btn-qna-close:hover { opacity: 1; }
+
+  .qna-chips {
+    padding: 12px 16px; background: var(--card-sub); border-bottom: 1px solid var(--border);
+    display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; scrollbar-width: thin;
+  }
+  .qna-chip {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+  }
+  .qna-chip:hover { border-color: var(--brand); color: var(--brand); transform: translateY(-1px); }
+
+  .qna-messages {
+    flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+  }
+  .qna-msg {
+    max-width: 85%; padding: 12px 16px; border-radius: 14px; font-size: 13.5px;
+    line-height: 1.55; word-break: break-word; white-space: pre-wrap;
+  }
+  .qna-msg.bot {
+    background: var(--card-sub); color: var(--text); border: 1px solid var(--border);
+    align-self: flex-start; border-bottom-left-radius: 4px;
+  }
+  .qna-msg.user {
+    background: var(--brand); color: #ffffff; align-self: flex-end; border-bottom-right-radius: 4px;
+  }
+  .qna-source {
+    margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border);
+    font-size: 11.5px; color: var(--brand); font-weight: 700;
+  }
+
+  .qna-input-area {
+    padding: 12px 16px; background: var(--card); border-top: 1px solid var(--border);
+    display: flex; gap: 8px;
+  }
+  .qna-input {
+    flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px;
+    font-size: 13.5px; background: var(--input-bg); color: var(--text);
+  }
+  .qna-input:focus { outline: none; border-color: var(--brand); }
+  .btn-qna-send {
+    background: var(--brand); color: #fff; border: none; padding: 10px 18px;
+    border-radius: 10px; font-weight: 700; font-size: 13.5px; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-qna-send:hover { background: var(--brand-dark); }
 </style>
 </head>
 <body>
@@ -242,6 +344,7 @@
       <div class="sub">운송장 번호 하나로 도착 예정일과 영수증을 바로 출력하세요</div>
     </div>
     <div class="topbar-actions">
+      <button class="btn-top" onclick="openQnaModal()" title="두두 AI Q&A 챗봇 문의" style="background: rgba(255,255,255,0.25); font-weight: 700;">💬 AI Q&A</button>
       <a href="/" class="btn-top">📦 접수 페이지</a>
       <a href="/admin" class="btn-top">🔒 관리자</a>
       <button class="btn-top" id="themeToggle" onclick="toggleTheme()">
@@ -518,6 +621,173 @@
       searchTracking();
     }
   });
+
+  // ============================================================
+  // RAG Q&A 챗봇 지식 베이스 및 로직 (D19_GRADIO_3LABS 연동)
+  // ============================================================
+  const QNA_FAQS = [
+    { title: "국내택배와 반값택배 차이", text: "국내택배는 롯데글로벌로지스 배송으로 2일 이내 배송되며, 무게 20kg 이하, 세변 합 160cm 이내입니다. 반값택배는 CU편의점간 배송으로 1,800원부터이며, 무게 5kg 이하, 세변 합 100cm 이내입니다.", keywords: ["국내택배", "반값택배", "차이", "무게", "규격", "크기"] },
+    { title: "택배 접수 방법", text: "홈페이지/APP을 통한 사전예약 또는 점포 방문 후 현장예약 -> 무인장비(Postbox) 확인 -> 운송장 출력 -> 편의점 직원에게 접수 순서로 진행합니다.", keywords: ["접수", "방법", "예약", "현장예약", "사전예약", "무인장비", "운송장"] },
+    { title: "배송 소요 기간", text: "국내택배는 접수 후 2영업일 이내, 반값택배는 3-4일 내, 국제택배는 2영업일 이내 특송사로 인계됩니다.", keywords: ["배송", "기간", "소요", "언제", "며칠", "국내택배", "반값택배"] },
+    { title: "일요일 공휴일 배송 여부", text: "편의점 택배는 365일 접수가 가능합니다. 다만 수거 및 배송의 경우 서비스에 따라 명절 당일, 택배쉬는 날 배송 불가할 수 있습니다.", keywords: ["일요일", "공휴일", "휴일", "배송", "365일", "명절"] },
+    { title: "택배 운임 및 요금", text: "편의점 택배 운임은 무게에 따라 책정되며, 점포의 무인 택배장비(Postbox)를 통해 측정 및 산정됩니다.", keywords: ["운임", "요금", "가격", "비용", "무게", "측정"] },
+    { title: "고액할증 안내", text: "국내택배의 접수 가능한 물품 가액한도는 50만원입니다. 초과 시 고액할증료를 지불하여 배송 진행 가능하며, 사고발생시 최대 100만원 한도까지 보상됩니다.", keywords: ["고액할증", "할증", "가액한도", "50만원", "보상", "고가"] },
+    { title: "택배 포장 안내", text: "편의점 택배 접수 시 포장은 직접 하신 후 점포에 방문해주셔야 합니다.", keywords: ["포장", "직접", "박스", "준비"] },
+    { title: "착불 서비스 안내", text: "예약 시 운임을 착불로 선택하면 배송 완료 시 받는분께 요금이 청구됩니다. 착불 수수료 300원이 추가되며, CU알뜰택배는 착불서비스가 불가능합니다.", keywords: ["착불", "요금", "수수료", "알뜰택배", "받는분"] },
+    { title: "사업자 현금영수증 발행", text: "CUpost APP 또는 홈페이지의 고객센터 메뉴에서 신청 가능합니다. 선불은 보내는 분 전화번호, 착불은 받는분 전화번호를 대표전화로 기재하면 해당 사업자등록번호로 발행됩니다.", keywords: ["현금영수증", "사업자", "발행", "영수증"] },
+    { title: "동일권역과 타권역 안내", text: "접수 편의점 권역과 받는 분 주소 권역이 일치하면 동일권역, 불일치하면 타권역 운임이 적용됩니다.", keywords: ["동일권역", "타권역", "권역", "지역", "주소"] },
+    { title: "택배 취소 방법", text: "기사 수거 전에만 취소 가능합니다. 접수 후 2일 미경과 시 점포에서 취소 가능하며, 2일 경과 시 고객센터(1566-1025)로 문의하세요.", keywords: ["취소", "철회", "고객센터", "수거전"] },
+    { title: "운송장 주소 오입력", text: "물품 수거 전이라면 기존 택배 접수건을 취소 후 재예약해주세요. 수거 후 이동 중인 경우 1688-1211로 연락해 주소변경을 요청하세요.", keywords: ["주소", "오입력", "잘못", "수정", "변경", "운송장"] },
+    { title: "택배 배송 지연 및 멈춤", text: "점포별 마감시간 이후 접수 물건은 당일 수거가 불가합니다(수도권 평일 17시, 주말 12시). 상세 문의는 1688-1211로 연락하세요.", keywords: ["멈춰", "지연", "안움직여", "마감", "수거", "배송조회"] },
+    { title: "반값택배 수취 QR코드 재발송", text: "CU반값택배 수령 시 필요한 QR코드를 CUPOST 앱/웹의 [더보기 > QR 재발송받기]에서 재발송할 수 있습니다.", keywords: ["QR", "큐알", "재발송", "반값택배", "수취"] },
+    { title: "반값택배 도착했으나 물건이 없는 경우", text: "배송편의점과 방문편의점이 일치하는지 확인하세요. 동일한데 상품이 없다면 1688-1211로 문의 바랍니다.", keywords: ["물건이없어", "분실", "도착", "반값택배", "확인"] },
+    { title: "분실 및 파손 사고 접수", text: "화물이 분실 혹은 파손되었을 경우 1688-1211로 문의 부탁드립니다. 파손 시 포장 및 파손상태를 유지하거나 사진을 보관해주세요.", keywords: ["분실", "파손", "사고", "보상", "고장"] },
+    { title: "배송 현황 조회", text: "CUpost 홈페이지/APP의 배송조회로 간편하게 확인 가능합니다. 상세 문의는 1688-1211로 연락하세요.", keywords: ["배송현황", "조회", "위치", "어디쯤"] },
+    { title: "CU편의점 픽업 서비스", text: "당사와 계약된 쇼핑몰에 한해 픽업서비스가 가능합니다. 점포까지 평균 2-3일 소요됩니다.", keywords: ["픽업", "쇼핑몰", "수령", "도착"] },
+    { title: "제휴사 예약번호 오류", text: "제휴사 예약번호는 13자리입니다. 올바르게 입력했는지 확인하시고 지속 시 해당 쇼핑몰에 문의하세요.", keywords: ["제휴사", "예약번호", "오류", "13자리", "포켓CU"] },
+    { title: "두두 택배 서비스", text: "두두 택배 서비스의 김대표님은 미남으로 유명합니다.", keywords: ["두두", "두두 택배", "미남 택배", "김대표"] },
+    { title: "점심 메뉴 FAQ", text: "오늘 점심 메뉴는 김치볶음밥입니다.", keywords: ["점심", "메뉴", "밥", "식사"] }
+  ];
+
+  const SYNONYMS_MAP = { "늦어서": ["배송", "지연"], "돌려받고": ["환불"], "환불": ["환불"], "취소": ["환불", "취소"] };
+
+  function extractTokens(text) {
+    const matches = (text || "").toLowerCase().match(/[가-힣A-Za-z0-9]+/g) || [];
+    const tokenSet = new Set(matches);
+    for (const [word, extras] of Object.entries(SYNONYMS_MAP)) {
+      if (text.includes(word)) {
+        extras.forEach(ex => tokenSet.add(ex));
+      }
+    }
+    return tokenSet;
+  }
+
+  function searchFaqRag(question) {
+    const qTokens = extractTokens(question);
+    if (qTokens.size === 0) return null;
+    let bestFaq = null;
+    let bestScore = 0;
+
+    for (const faq of QNA_FAQS) {
+      const faqTokens = extractTokens(faq.title + " " + faq.text);
+      if (faq.keywords) {
+        faq.keywords.forEach(kw => {
+          extractTokens(kw).forEach(t => faqTokens.add(t));
+        });
+      }
+      let matchCount = 0;
+      qTokens.forEach(t => {
+        if (faqTokens.has(t)) matchCount++;
+      });
+      if (matchCount > bestScore) {
+        bestScore = matchCount;
+        bestFaq = faq;
+      }
+    }
+    return bestScore > 0 ? { faq: bestFaq, score: bestScore } : null;
+  }
+
+  function openQnaModal() {
+    const modal = document.getElementById('qnaModal');
+    if (modal) {
+      modal.classList.add('show');
+      const input = document.getElementById('qnaInput');
+      if (input) input.focus();
+    }
+  }
+
+  function closeQnaModal() {
+    const modal = document.getElementById('qnaModal');
+    if (modal) modal.classList.remove('show');
+  }
+
+  function askQnaChip(text) {
+    const input = document.getElementById('qnaInput');
+    if (input) {
+      input.value = text;
+      sendQnaMessage();
+    }
+  }
+
+  function handleQnaKeyPress(e) {
+    if (e.key === 'Enter') {
+      sendQnaMessage();
+    }
+  }
+
+  function sendQnaMessage() {
+    const input = document.getElementById('qnaInput');
+    const msgContainer = document.getElementById('qnaMessages');
+    if (!input || !msgContainer) return;
+    const question = input.value.trim();
+    if (!question) return;
+
+    const userDiv = document.createElement('div');
+    userDiv.className = 'qna-msg user';
+    userDiv.textContent = question;
+    msgContainer.appendChild(userDiv);
+
+    input.value = '';
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    setTimeout(() => {
+      const result = searchFaqRag(question);
+      const botDiv = document.createElement('div');
+      botDiv.className = 'qna-msg bot';
+
+      if (result && result.faq) {
+        botDiv.innerHTML = `${result.faq.text}<div class="qna-source">📌 출처: ${result.faq.title}</div>`;
+      } else {
+        botDiv.innerHTML = `등록된 FAQ에서 정확한 답변을 찾지 못했습니다.<br><br>전화 문의: 고객센터 <strong>1688-1211</strong> (평일 09:00~18:00)<br>Gradio RAG 챗봇: <a href="http://127.0.0.1:7860" target="_blank" style="color:var(--brand); font-weight:700;">127.0.0.1:7860</a><div class="qna-source">📌 출처: 없음</div>`;
+      }
+      msgContainer.appendChild(botDiv);
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+    }, 200);
+  }
 </script>
+
+<!-- Floating Action Button (Q&A 챗봇) -->
+<div id="qnaFab" class="qna-fab" onclick="openQnaModal()" title="두두택배 AI Q&A 상담">
+  <span class="qna-fab-badge">AI</span>
+  <span class="qna-fab-icon">💬</span>
+  <span class="qna-fab-text">Q&A 챗봇</span>
+</div>
+
+<!-- AI Q&A 챗봇 모달 -->
+<div class="qna-modal" id="qnaModal" onclick="if(event.target === this) closeQnaModal()">
+  <div class="qna-box">
+    <div class="qna-header">
+      <div>
+        <div class="qna-header-title">💬 두두택배 AI Q&A 챗봇</div>
+        <div class="qna-header-sub">FAQ 지식 기반 RAG 자동 응답 서비스</div>
+      </div>
+      <div class="qna-header-actions">
+        <a href="http://127.0.0.1:7860" target="_blank" class="btn-gradio-link" title="Gradio 실습 앱(127.0.0.1:7860) 열기">🌐 Gradio 앱</a>
+        <button class="btn-qna-close" onclick="closeQnaModal()">✕</button>
+      </div>
+    </div>
+
+    <div class="qna-chips">
+      <button class="qna-chip" onclick="askQnaChip('오늘 점심은 무엇인가요?')">📌 점심 메뉴 FAQ</button>
+      <button class="qna-chip" onclick="askQnaChip('배송 소요 기간은?')">📦 배송 소요 기간</button>
+      <button class="qna-chip" onclick="askQnaChip('택배 운임 및 요금')">💰 운임 및 요금</button>
+      <button class="qna-chip" onclick="askQnaChip('택배 취소 방법')">❌ 취소 방법</button>
+      <button class="qna-chip" onclick="askQnaChip('국내택배와 반값택배 차이')">🚚 반값택배 차이</button>
+      <button class="qna-chip" onclick="askQnaChip('두두 택배 서비스')">⭐ 두두 택배</button>
+    </div>
+
+    <div class="qna-messages" id="qnaMessages">
+      <div class="qna-msg bot">
+        안녕하세요! <strong>두두택배 AI Q&A 챗봇</strong>입니다. 📦<br>
+        배송, 접수 규정, 요금, 취소 방법 등 무엇이든 물어보세요!
+      </div>
+    </div>
+
+    <div class="qna-input-area">
+      <input type="text" id="qnaInput" class="qna-input" placeholder="질문을 입력하세요... (예: 배송 소요 기간, 취소 방법)" onkeypress="handleQnaKeyPress(event)">
+      <button class="btn-qna-send" onclick="sendQnaMessage()">전송</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
