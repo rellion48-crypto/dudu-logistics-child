@@ -1653,7 +1653,7 @@
       if (result && result.faq) {
         msgHtml = `${result.faq.text}<div class="qna-source">📌 출처: ${result.faq.title}</div>`;
       } else {
-        msgHtml = `등록된 FAQ에서 정확한 답변을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>1688-1211</strong> (평일 09:00~18:00)<br>🌐 Gradio RAG 챗봇: <a href="http://127.0.0.1:7860" target="_blank" style="color:var(--brand); font-weight:800;">127.0.0.1:7860</a><div class="qna-source">📌 출처: 없음</div>`;
+        msgHtml = `등록된 FAQ에서 정확한 답변을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>1688-1211</strong> (평일 09:00~18:00)<div class="qna-source">📌 출처: 없음</div>`;
       }
 
       botRow.innerHTML = `
@@ -1706,7 +1706,6 @@
         </div>
       </div>
       <div class="qna-header-actions">
-        <a href="http://127.0.0.1:7860" target="_blank" class="btn-gradio-link" title="Gradio 실습 앱(127.0.0.1:7860) 열기">🌐 Gradio 앱</a>
         <button class="btn-qna-close" onclick="closeQnaModal()">✕</button>
       </div>
     </div>
