@@ -1819,13 +1819,12 @@
         const sources = hits.map(h => h.faq.title).join(', ');
 
         if (useGeminiMode) {
-          msgHtml = `🤖 <strong>[AI 상세상담 모드]</strong><br>${primaryFaq.text}<br><br>💡 <em>추가 문의사항이나 특별 접수 조건이 필요하시면 말씀해주세요!</em><div class="qna-source">📌 출처: ${sources} | TOP_K=3, MIN_SCORE=1 | 생성 방식: Gemini AI 🤖</div>`;
+          msgHtml = `🤖 <strong>[AI 상세상담 모드]</strong><br>${primaryFaq.text}<br><br>💡 <em>추가 문의사항이나 특별 접수 조건이 필요하시면 말씀해주세요!</em><div class="qna-source">📌 연관 FAQ: ${sources} | 방식: Gemini AI 🤖</div>`;
         } else {
-          msgHtml = `${primaryFaq.text}<div class="qna-source">📌 출처: ${sources} | TOP_K=3, MIN_SCORE=2 | 생성 방식: Rule Based ⚡</div>`;
+          msgHtml = `${primaryFaq.text}<div class="qna-source">📌 연관 FAQ: ${sources} | 방식: Rule Based ⚡</div>`;
         }
       } else {
-        const curScore = useGeminiMode ? 1 : 2;
-        msgHtml = `등록된 FAQ에서 일치하는 답변(MIN_SCORE=${curScore})을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>0000-0000</strong> (평일 09:00~18:00)<div class="qna-source">📌 출처: 없음 | TOP_K=3, MIN_SCORE=${curScore}</div>`;
+        msgHtml = `입력하신 질문과 일치하는 FAQ 답변을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>0000-0000</strong> (평일 09:00~18:00)<div class="qna-source">📌 출처: 고객센터 안내</div>`;
       }
 
       botRow.innerHTML = `
