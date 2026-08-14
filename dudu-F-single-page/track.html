@@ -979,15 +979,14 @@
       let msgHtml = '';
       if (hits && hits.length > 0) {
         const primaryFaq = hits[0].faq;
-        const sources = hits.map(h => h.faq.title).join(', ');
 
         if (useGeminiMode) {
-          msgHtml = `🤖 <strong>[AI 배송상담 모드]</strong><br>${primaryFaq.text}<br><br>💡 <em>배송 지연 문의나 이동 경로에 대해 더 자세히 안내해 드릴까요?</em><div class="qna-source">📌 연관 FAQ: ${sources} | 방식: Gemini AI 🤖</div>`;
+          msgHtml = `🤖 <strong>[AI 배송상담 모드]</strong><br>${primaryFaq.text}<br><br>💡 <em>배송 지연 문의나 이동 경로에 대해 더 자세히 안내해 드릴까요?</em>`;
         } else {
-          msgHtml = `${primaryFaq.text}<div class="qna-source">📌 연관 FAQ: ${sources} | 방식: Rule Based ⚡</div>`;
+          msgHtml = `${primaryFaq.text}`;
         }
       } else {
-        msgHtml = `입력하신 질문과 일치하는 FAQ 답변을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>0000-0000</strong> (평일 09:00~18:00)<div class="qna-source">📌 출처: 고객센터 안내</div>`;
+        msgHtml = `입력하신 질문과 일치하는 FAQ 답변을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>0000-0000</strong> (평일 09:00~18:00)`;
       }
 
       botRow.innerHTML = `
