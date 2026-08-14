@@ -928,6 +928,25 @@
     return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  function getFollowupQuestions(hits) {
+    let followups = [];
+    if (hits && hits.length > 1) {
+      for (let i = 1; i < hits.length && followups.length < 2; i++) {
+        if (hits[i] && hits[i].faq && hits[i].faq.title) {
+          followups.push(hits[i].faq.title);
+        }
+      }
+    }
+    const defaults = ["배송 현황 조회", "배송 소요 기간", "택배 배송 지연 및 멈춤", "반값택배 도착했으나 물건이 없는 경우", "분실 및 파손 사고 접수"];
+    for (const d of defaults) {
+      if (followups.length >= 2) break;
+      if (!followups.includes(d) && (!hits || !hits[0] || hits[0].faq.title !== d)) {
+        followups.push(d);
+      }
+    }
+    return followups.slice(0, 2);
+  }
+
   function sendQnaMessage() {
     const input = document.getElementById('qnaInput');
     const msgContainer = document.getElementById('qnaMessages');
@@ -979,14 +998,36 @@
       let msgHtml = '';
       if (hits && hits.length > 0) {
         const primaryFaq = hits[0].faq;
+        const followups = getFollowupQuestions(hits);
+        
+        let followupHtml = '';
+        if (followups.length > 0) {
+          followupHtml = `
+            <div class="qna-followup-box" style="margin-top:12px; padding-top:10px; border-top:1px dashed rgba(0,0,0,0.12);">
+              <div style="font-size:12px; color:#555; font-weight:700; margin-bottom:6px;">💡 연관 추천 질문</div>
+              <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                ${followups.map(q => `<button type="button" class="qna-chip" style="font-size:12px; padding:4px 10px; margin:0;" onclick="askQnaChip('${escapeHtml(q)}')">📌 ${escapeHtml(q)}</button>`).join('')}
+              </div>
+            </div>
+          `;
+        }
 
         if (useGeminiMode) {
-          msgHtml = `🤖 <strong>[AI 배송상담 모드]</strong><br>${primaryFaq.text}<br><br>💡 <em>배송 지연 문의나 이동 경로에 대해 더 자세히 안내해 드릴까요?</em>`;
+          msgHtml = `🤖 <strong>[AI 배송상담 모드]</strong><br>${primaryFaq.text}<br><br>💡 <em>배송 지연 문의나 이동 경로에 대해 더 자세히 안내해 드릴까요?</em>${followupHtml}`;
         } else {
-          msgHtml = `${primaryFaq.text}`;
+          msgHtml = `${primaryFaq.text}${followupHtml}`;
         }
       } else {
-        msgHtml = `입력하신 질문과 일치하는 FAQ 답변을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>0000-0000</strong> (평일 09:00~18:00)`;
+        const defaultFollowups = ["배송 현황 조회", "배송 소요 기간"];
+        const followupHtml = `
+          <div class="qna-followup-box" style="margin-top:12px; padding-top:10px; border-top:1px dashed rgba(0,0,0,0.12);">
+            <div style="font-size:12px; color:#555; font-weight:700; margin-bottom:6px;">💡 이런 질문을 찾으시나요?</div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+              ${defaultFollowups.map(q => `<button type="button" class="qna-chip" style="font-size:12px; padding:4px 10px; margin:0;" onclick="askQnaChip('${escapeHtml(q)}')">📌 ${escapeHtml(q)}</button>`).join('')}
+            </div>
+          </div>
+        `;
+        msgHtml = `입력하신 질문과 일치하는 FAQ 답변을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>0000-0000</strong> (평일 09:00~18:00)${followupHtml}`;
       }
 
       botRow.innerHTML = `
