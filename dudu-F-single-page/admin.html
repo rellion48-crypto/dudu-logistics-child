@@ -712,82 +712,113 @@
     { title: "두두택배 서비스 만족도 조사", text: "배송 완료 후 챗봇 및 카카오 알림톡을 통해 서비스 만족도 평가 참여 시 100 마일리지를 드립니다.", keywords: ["만족도조사", "평가이벤트", "100마일리지"] }
   ];
 
+  // ============================================================
+  // [구어체 유의어 사전 지도]
+  // 사용자가 일상적으로 사용하는 구어체 단어를 검색에 필요한 표준 키워드로 매핑합니다.
+  // ============================================================
   const SYNONYMS_MAP = {
     "늦어서": ["배송", "지연"],
     "돌려받고": ["환불"],
     "환불": ["환불"],
     "취소": ["환불", "취소"],
-    "안와요": ["배송", "지연"],
-    "안와": ["배송", "지연"],
-    "안옴": ["배송", "지연"],
-    "미도착": ["배송", "지연"],
-    "안도착": ["배송", "지연"],
-    "어디": ["배송", "조회"],
-    "어디쯤": ["배송", "조회"]
+    "안와요": ["배송", "지연"],   // "배송이 안와요" ➔ 배송, 지연 키워드 자동 주입
+    "안와": ["배송", "지연"],     // "택배 안와" ➔ 배송, 지연 키워드 자동 주입
+    "안옴": ["배송", "지연"],     // "왜 안옴" ➔ 배송, 지연 키워드 자동 주입
+    "미도착": ["배송", "지연"],   // "미도착 건" ➔ 배송, 지연 키워드 자동 주입
+    "안도착": ["배송", "지연"],   // "안도착함" ➔ 배송, 지연 키워드 자동 주입
+    "어디": ["배송", "조회"],     // "택배 어디" ➔ 배송, 조회 키워드 자동 주입
+    "어디쯤": ["배송", "조회"]    // "어디쯤 오나요" ➔ 배송, 조회 키워드 자동 주입
   };
 
+  // ============================================================
+  // [토큰 추출 함수 (Stemming & Tokenizer)]
+  // 문장에서 1) 정규식 단어 분리, 2) 한국어 조사 제거 어근 추출, 3) 유의어 사전을 통한 키워드 확장을 수행합니다.
+  // ============================================================
   function extractTokens(text) {
+    // 1단계: 정규표현식으로 문장 부호/공백을 제외하고 한글/영문/숫자 단위로 단어를 쪼갭니다.
     const matches = (text || "").toLowerCase().match(/[가-힣A-Za-z0-9]+/g) || [];
+    
+    // 중복을 제거하고 토큰 집합을 관리하기 위해 Set 객체를 생성합니다.
     const tokenSet = new Set(matches);
 
-    // 한국어 대표 조사(이/가/은/는/을/를/에/서/로/도/만) 제거 후 기본형 토큰 추가
+    // 2단계: 한국어 대표 조사(이/가/은/는/을/를/에/서/로/도/만)를 떼어내어 어근(명사 기본형)을 토큰에 추가합니다.
     matches.forEach(m => {
-      if (m.length > 1) {
+      if (m.length > 1) { // 2자 이상인 단어에만 조사를 떼어냅니다 (예: '배송이' ➔ '배송')
         const stripped = m.replace(/(이|가|은|는|을|를|에|서|로|도|만)$/, "");
         if (stripped && stripped.length >= 1) {
-          tokenSet.add(stripped);
+          tokenSet.add(stripped); // 어근 단어('배송')를 토큰 집합에 추가
         }
       }
     });
 
+    // 3단계: 유의어 사전(SYNONYMS_MAP)을 검색하여 사용자가 사용한 구어체가 있는 경우 표준 키워드를 토큰 집합에 주입합니다.
     for (const [word, extras] of Object.entries(SYNONYMS_MAP)) {
-      if (text.includes(word)) {
-        extras.forEach(ex => tokenSet.add(ex));
+      if (text.includes(word)) { // 문장에 구어체 단어가 포함되어 있다면
+        extras.forEach(ex => tokenSet.add(ex)); // 연관된 표준 키워드(예: '배송', '지연')를 토큰 집합에 추가
       }
     }
-    return tokenSet;
+    return tokenSet; // 최종 추출 및 확장된 토큰 집합 반환
   }
 
   let useGeminiMode = false;
 
+  // AI 상세상담 ON/OFF 모드 전환 토글 함수
   function toggleGeminiMode() {
     useGeminiMode = !useGeminiMode;
     const btn = document.getElementById('btnAiToggle');
     if (btn) {
       if (useGeminiMode) {
         btn.classList.add('active');
-        btn.innerHTML = '⚡ AI 상세상담 ON 🤖';
+        btn.innerHTML = '⚡ AI 관리자상담 ON 🤖';
       } else {
         btn.classList.remove('active');
-        btn.innerHTML = '⚡ AI 상세상담 OFF';
+        btn.innerHTML = '⚡ AI 관리자상담 OFF';
       }
     }
   }
 
+  // ============================================================
+  // [FAQ 지식 지능형 검색 함수 (RAG Search Engine)]
+  // 입력된 질문과 FAQ 지식 데이터의 토큰 교집합 일치 개수(Score)를 기반으로 순위를 매깁니다.
+  // ============================================================
   function searchFaqRag(question) {
-    const TOP_K = 3;
-    // AI 모드 ON일 때는 유연한 검색(MIN_SCORE=1), Rule 모드 OFF일 때는 엄격한 검색(MIN_SCORE=2)
+    const TOP_K = 3; // 상위 최대 3개의 연관 FAQ를 추출
+    
+    // AI 모드 ON일 때는 유연하게 1개 토큰만 맞아도 답변(MIN_SCORE=1), Rule 모드 OFF일 때는 엄격하게 2개 토큰(MIN_SCORE=2)
     const MIN_SCORE = useGeminiMode ? 1 : 2;
+    
+    // 사용자 질문에서 토큰 집합 추출 (조사 제거 및 구어체 유의어 포함)
     const qTokens = extractTokens(question);
     if (qTokens.size === 0) return null;
 
     let ranked = [];
+    
+    // FAQ 100개 데이터베이스를 순회하며 질문 토큰과의 매칭 점수(Score)를 계산합니다.
     for (const faq of QNA_FAQS) {
+      // FAQ의 제목, 본문, 키워드에서 전체 지식 토큰 집합을 추출
       const faqTokens = extractTokens(faq.title + " " + faq.text);
       if (faq.keywords) {
         faq.keywords.forEach(kw => {
           extractTokens(kw).forEach(t => faqTokens.add(t));
         });
       }
+      
+      // 사용자 질문 토큰(qTokens)이 FAQ 토큰(faqTokens)에 몇 개 포함되는지 매칭 카운트 계산
       let matchCount = 0;
       qTokens.forEach(t => {
         if (faqTokens.has(t)) matchCount++;
       });
+      
+      // 설정된 최소 기준 점수(MIN_SCORE) 이상인 경우 후보군에 추가
       if (matchCount >= MIN_SCORE) {
         ranked.push({ faq, score: matchCount });
       }
     }
+    
+    // 일치 점수가 높은 순(내림차순)으로 정렬
     ranked.sort((a, b) => b.score - a.score);
+    
+    // 상위 TOP_K(3개) 항목만 슬라이스하여 반환
     const topHits = ranked.slice(0, TOP_K);
     return topHits.length > 0 ? topHits : null;
   }
