@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>D19 Gradio RAG 3실습</title>
+<style>
+:root{--bg:#101312;--panel:#191d1b;--text:#f7f7f2;--muted:#c7cdc9;--accent:#87d68d;--line:#3a413d}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Pretendard",sans-serif;overflow:hidden}.slide{display:none;width:100vw;height:100vh;padding:6vh 7vw}.slide.active{display:flex;flex-direction:column}.kicker{font-size:1.35vw;font-weight:800;color:var(--accent);letter-spacing:.06em}.title{font-size:4vw;line-height:1.08;margin:1vh 0 1.5vh;font-weight:900;letter-spacing:-.04em}.statement{font-size:1.8vw;line-height:1.45;color:var(--muted);margin:0 0 3vh}.body{display:grid;grid-template-columns:.95fr 1.2fr;gap:3vw;flex:1;min-height:0}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:2vw}.panel h2{font-size:2vw;margin:0 0 1.5vh}.steps{display:grid;gap:1.45vh}.step{font-size:1.45vw;line-height:1.45;display:grid;grid-template-columns:2.5vw 1fr;gap:1vw}.num{color:var(--accent);font-weight:900}.screen{background:#090b0a;border:1px solid var(--line);border-radius:16px;padding:2vw;font-size:1.55vw;line-height:1.6;white-space:pre-wrap;height:100%;display:flex;align-items:center}.big-rule{font-size:2.65vw;line-height:1.5;padding:2.5vw;background:var(--panel);border-left:8px solid var(--accent);border-radius:0 16px 16px 0}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;flex:1}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:2.2vw}.card strong{font-size:2.1vw;color:var(--accent)}.card p{font-size:1.6vw;line-height:1.55}.constant{color:var(--muted)}.variable{color:var(--accent);font-weight:800}.nav{position:fixed;right:2vw;bottom:2vh;display:flex;gap:.5vw}.nav button{border:1px solid var(--line);background:#202522;color:var(--text);border-radius:10px;padding:.7em 1em;font-size:1vw;font-weight:700}.counter{position:fixed;left:2vw;bottom:2.4vh;color:var(--muted);font-size:1vw}code{color:var(--accent);font-weight:800}
+</style></head><body>
+<section class="slide active"><div class="kicker">D19 · GRADIO RAG 체험</div><h1 class="title">완성된 챗봇을 세 덩어리로 뜯어본다</h1><p class="statement">세 실습은 서로 독립이다. 한 실습이 막혀도 다음 실습은 새 완성본에서 시작한다.</p><div class="three"><div class="card"><strong>1. INDEXING</strong><p>FAQ를 바꾸면<br>답할 수 있는 범위가 바뀐다.</p></div><div class="card"><strong>2. RETRIEVAL</strong><p>검색 설정을 바꾸면<br>가져오는 근거가 바뀐다.</p></div><div class="card"><strong>3. GENERATION</strong><p>답변 설정을 바꾸면<br>말하는 방식이 바뀐다.</p></div></div></section>
+<section class="slide"><div class="kicker">세 실습의 동일한 패턴</div><h1 class="title">하나만 바꾸고, 같은 질문을 다시 한다</h1><p class="statement">원인과 결과를 보려면 다른 설정은 그대로 둬야 한다.</p><div class="big-rule">① 완성본 실행<br>② 상수 확인<br>③ 변수 하나만 변경<br>④ 같은 질문 재실행<br>⑤ 변경 전·후 화면을 각각 캡처</div></section>
+<section class="slide"><div class="kicker">LAB 1 · INDEXING · 변경 전</div><h1 class="title">챗봇이 모르는 질문을 한다</h1><p class="statement"><span class="constant">상수: 질문·검색 설정·답변 규칙</span>　<span class="variable">변수: FAQ 지식 1개</span></p><div class="body"><div class="panel"><h2>HOW-TO</h2><div class="steps"><div class="step"><span class="num">1</span><span>Gradio 완성본을 연다.</span></div><div class="step"><span class="num">2</span><span><b>오늘 점심은 무엇인가요?</b>를 입력한다.</span></div><div class="step"><span class="num">3</span><span>확인 불가 결과를 캡처한다.</span></div><div class="step"><span class="num">4</span><span>질문 문장은 복사해 둔다.</span></div></div></div><div class="screen">고객: 오늘 점심은 무엇인가요?
+
+챗봇: 등록된 FAQ에서 확인할 수 없습니다.
+
+출처: 없음</div></div></section>
+<section class="slide"><div class="kicker">LAB 1 · INDEXING · 변경 후</div><h1 class="title">FAQ 하나를 추가하고 같은 질문을 한다</h1><p class="statement">바꾼 것은 FAQ 지식 하나뿐이다.</p><div class="body"><div class="panel"><h2>HOW-TO</h2><div class="steps"><div class="step"><span class="num">1</span><span><code>faq.md</code>에 점심 메뉴 FAQ를 추가한다.</span></div><div class="step"><span class="num">2</span><span>앱을 다시 실행한다.</span></div><div class="step"><span class="num">3</span><span><b>같은 질문</b>을 다시 입력한다.</span></div><div class="step"><span class="num">4</span><span>답변 가능으로 바뀐 화면을 캡처한다.</span></div></div></div><div class="screen">고객: 오늘 점심은 무엇인가요?
+
+챗봇: 오늘 점심 메뉴는 김치볶음밥입니다.
+
+출처: 점심 메뉴 FAQ</div></div></section>
+<section class="slide"><div class="kicker">LAB 2 · RETRIEVAL · 변경 전</div><h1 class="title">Top-k 1로 근거 하나만 가져온다</h1><p class="statement"><span class="constant">상수: FAQ·질문·답변 규칙</span>　<span class="variable">변수: 검색 결과 수</span></p><div class="body"><div class="panel"><h2>HOW-TO</h2><div class="steps"><div class="step"><span class="num">1</span><span>Retrieval 완성본을 연다.</span></div><div class="step"><span class="num">2</span><span><code>TOP_K = 1</code>을 확인한다.</span></div><div class="step"><span class="num">3</span><span><b>배송이 늦어서 환불하고 싶어요</b>를 입력한다.</span></div><div class="step"><span class="num">4</span><span>검색된 출처를 캡처한다.</span></div></div></div><div class="screen">질문: 배송이 늦어서 환불하고 싶어요.
+
+TOP_K = 1
+
+가져온 근거:
+1. 환불 FAQ</div></div></section>
+<section class="slide"><div class="kicker">LAB 2 · RETRIEVAL · 변경 후</div><h1 class="title">Top-k 3으로 바꾸고 같은 질문을 한다</h1><p class="statement">바꾼 것은 검색 결과 수 한 줄뿐이다.</p><div class="body"><div class="panel"><h2>HOW-TO</h2><div class="steps"><div class="step"><span class="num">1</span><span><code>TOP_K = 3</code>으로 한 줄만 바꾼다.</span></div><div class="step"><span class="num">2</span><span>앱을 다시 실행한다.</span></div><div class="step"><span class="num">3</span><span><b>같은 질문</b>을 다시 입력한다.</span></div><div class="step"><span class="num">4</span><span>늘어난 출처를 캡처한다.</span></div></div></div><div class="screen">질문: 배송이 늦어서 환불하고 싶어요.
+
+TOP_K = 3
+
+가져온 근거:
+1. 환불 FAQ
+2. 배송 조회 FAQ
+3. 배송 지연 FAQ</div></div></section>
+<section class="slide"><div class="kicker">LAB 3 · GENERATION · 변경 전</div><h1 class="title">짧게 답하도록 설정한다</h1><p class="statement"><span class="constant">상수: FAQ·질문·검색 결과</span>　<span class="variable">변수: System Prompt 한 문장</span></p><div class="body"><div class="panel"><h2>HOW-TO</h2><div class="steps"><div class="step"><span class="num">1</span><span>Generation 완성본을 연다.</span></div><div class="step"><span class="num">2</span><span><code>간결하게 답하세요</code>를 확인한다.</span></div><div class="step"><span class="num">3</span><span><b>이미 출발했는데 환불되나요?</b>를 입력한다.</span></div><div class="step"><span class="num">4</span><span>짧은 답변을 캡처한다.</span></div></div></div><div class="screen">고객: 이미 출발했는데 환불되나요?
+
+챗봇: 발송 후에는 반품 접수와 회수 확인 뒤 환불됩니다.
+
+출처: 환불 FAQ</div></div></section>
+<section class="slide"><div class="kicker">LAB 3 · GENERATION · 변경 후</div><h1 class="title">단계별 안내로 바꾸고 같은 질문을 한다</h1><p class="statement">근거와 사실은 그대로 두고 답변 방식만 바꾼다.</p><div class="body"><div class="panel"><h2>HOW-TO</h2><div class="steps"><div class="step"><span class="num">1</span><span><code>다음 행동을 단계별로 안내하세요</code>로 바꾼다.</span></div><div class="step"><span class="num">2</span><span>앱을 다시 실행한다.</span></div><div class="step"><span class="num">3</span><span><b>같은 질문</b>을 다시 입력한다.</span></div><div class="step"><span class="num">4</span><span>단계형 답변을 캡처한다.</span></div></div></div><div class="screen">고객: 이미 출발했는데 환불되나요?
+
+챗봇:
+1. 주문번호를 확인해 주세요.
+2. 반품을 접수해 주세요.
+3. 회수 확인 뒤 환불됩니다.
+
+출처: 환불 FAQ</div></div></section>
+<div class="counter" id="counter"></div><div class="nav"><button onclick="prev()">이전</button><button onclick="next()">다음</button></div><script>const slides=[...document.querySelectorAll('.slide')];let at=0;function show(n){slides[at].classList.remove('active');at=(n+slides.length)%slides.length;slides[at].classList.add('active');counter.textContent=`${at+1} / ${slides.length}`};function next(){show(at+1)}function prev(){show(at-1)}document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')next();if(e.key==='ArrowLeft')prev()});show(0);</script></body></html>

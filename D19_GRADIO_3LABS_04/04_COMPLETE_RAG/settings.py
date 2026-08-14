@@ -1,0 +1,3 @@
+TOP_K = 3
+MIN_SCORE = 1
+USE_GEMINI = True

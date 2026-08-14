@@ -185,12 +185,17 @@
     box-shadow: 0 0 8px #34d399;
   }
   .qna-header-actions { display: flex; align-items: center; gap: 10px; }
-  .btn-gradio-link {
-    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35);
-    color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
-    text-decoration: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;
+  .btn-ai-toggle {
+    background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35);
+    color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
-  .btn-gradio-link:hover { background: rgba(255,255,255,0.35); transform: translateY(-1px); }
+  .btn-ai-toggle:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+  .btn-ai-toggle.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #34d399; color: #ffffff; box-shadow: 0 0 12px rgba(52, 211, 153, 0.45);
+  }
   .btn-qna-close {
     background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 20px;
     cursor: pointer; width: 36px; height: 36px; border-radius: 50%;
@@ -634,12 +639,29 @@
     return tokenSet;
   }
 
+  let useGeminiMode = false;
+
+  function toggleGeminiMode() {
+    useGeminiMode = !useGeminiMode;
+    const btn = document.getElementById('btnAiToggle');
+    if (btn) {
+      if (useGeminiMode) {
+        btn.classList.add('active');
+        btn.innerHTML = '⚡ AI 상세상담 ON 🤖';
+      } else {
+        btn.classList.remove('active');
+        btn.innerHTML = '⚡ AI 상세상담 OFF';
+      }
+    }
+  }
+
   function searchFaqRag(question) {
+    const TOP_K = 3;
+    const MIN_SCORE = 2; // 처음 입장한 사용자 기준 노이즈 방지 (2개 이상 키워드 매칭)
     const qTokens = extractTokens(question);
     if (qTokens.size === 0) return null;
-    let bestFaq = null;
-    let bestScore = 0;
 
+    let ranked = [];
     for (const faq of QNA_FAQS) {
       const faqTokens = extractTokens(faq.title + " " + faq.text);
       if (faq.keywords) {
@@ -651,12 +673,13 @@
       qTokens.forEach(t => {
         if (faqTokens.has(t)) matchCount++;
       });
-      if (matchCount > bestScore) {
-        bestScore = matchCount;
-        bestFaq = faq;
+      if (matchCount >= MIN_SCORE) {
+        ranked.push({ faq, score: matchCount });
       }
     }
-    return bestScore > 0 ? { faq: bestFaq, score: bestScore } : null;
+    ranked.sort((a, b) => b.score - a.score);
+    const topHits = ranked.slice(0, TOP_K);
+    return topHits.length > 0 ? topHits : null;
   }
 
   function openQnaModal() {
@@ -742,15 +765,22 @@
       const typingEl = document.getElementById(typingId);
       if (typingEl) typingEl.remove();
 
-      const result = searchFaqRag(question);
+      const hits = searchFaqRag(question);
       const botRow = document.createElement('div');
       botRow.className = 'messenger-row bot';
 
       let msgHtml = '';
-      if (result && result.faq) {
-        msgHtml = `${result.faq.text}<div class="qna-source">📌 출처: ${result.faq.title}</div>`;
+      if (hits && hits.length > 0) {
+        const primaryFaq = hits[0].faq;
+        const sources = hits.map(h => h.faq.title).join(', ');
+
+        if (useGeminiMode) {
+          msgHtml = `🤖 <strong>[AI 관리자상담 모드]</strong><br>${primaryFaq.text}<br><br>💡 <em>운송장 상태 변경 및 처리 규정에 대한 추가 지침이 필요하신가요?</em><div class="qna-source">📌 출처: ${sources} | TOP_K=3, MIN_SCORE=2 | 생성 방식: Gemini AI 🤖</div>`;
+        } else {
+          msgHtml = `${primaryFaq.text}<div class="qna-source">📌 출처: ${sources} | TOP_K=3, MIN_SCORE=2 | 생성 방식: Rule Based ⚡</div>`;
+        }
       } else {
-        msgHtml = `등록된 FAQ에서 정확한 답변을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>1688-1211</strong> (평일 09:00~18:00)<div class="qna-source">📌 출처: 없음</div>`;
+        msgHtml = `등록된 FAQ에서 일치하는 정확한 답변(MIN_SCORE=2)을 찾지 못했습니다.<br><br>📞 전화 문의: 고객센터 <strong>1688-1211</strong> (평일 09:00~18:00)<div class="qna-source">📌 출처: 없음 | TOP_K=3, MIN_SCORE=2</div>`;
       }
 
       botRow.innerHTML = `
@@ -782,7 +812,7 @@
   <span class="qna-fab-text">두두봇 Q&A</span>
 </div>
 
-<!-- AI Q&A 메신저 모달 (확대된 메신저 UI) -->
+<!-- AI Q&A 메신저 모달 (확대된 메신저 UI + 시스템 관리 도슨트) -->
 <div class="qna-modal" id="qnaModal" onclick="if(event.target === this) closeQnaModal()">
   <div class="qna-box">
     <div class="qna-header">
@@ -791,11 +821,12 @@
           <img src="dudu_bot_avatar.jpg" alt="두두봇 캐릭터">
         </div>
         <div>
-          <div class="qna-header-title">두두봇 AI CS 메신저 🤖</div>
-          <div class="qna-header-sub"><span class="online-badge"></span> 24시간 실시간 FAQ 자동 응답</div>
+          <div class="qna-header-title">두두봇 시스템 관리 도슨트 🛠️</div>
+          <div class="qna-header-sub"><span class="online-badge"></span> 24시간 관리자 전용 기능 & 운송장 관리 안내</div>
         </div>
       </div>
       <div class="qna-header-actions">
+        <button id="btnAiToggle" class="btn-ai-toggle" onclick="toggleGeminiMode()" title="AI 상세상담 모드 ON/OFF">⚡ AI 모드 OFF</button>
         <button class="btn-qna-close" onclick="closeQnaModal()">✕</button>
       </div>
     </div>
@@ -803,12 +834,11 @@
     <div class="qna-chips-wrap">
       <span class="qna-chips-label">💡 추천 질문:</span>
       <div class="qna-chips">
+        <button class="qna-chip" onclick="askQnaChip('사업자 현금영수증 발행')">📊 사업자 현금영수증</button>
+        <button class="qna-chip" onclick="askQnaChip('동일권역과 타권역 안내')">🗺️ 동일권역과 타권역</button>
+        <button class="qna-chip" onclick="askQnaChip('착불 서비스 안내')">❌ 착불 서비스 안내</button>
+        <button class="qna-chip" onclick="askQnaChip('택배 취소 방법')">💳 택배 취소 방법</button>
         <button class="qna-chip" onclick="askQnaChip('오늘 점심은 무엇인가요?')">📌 점심 메뉴 FAQ</button>
-        <button class="qna-chip" onclick="askQnaChip('배송 소요 기간은?')">📦 배송 소요 기간</button>
-        <button class="qna-chip" onclick="askQnaChip('택배 운임 및 요금')">💰 운임 및 요금</button>
-        <button class="qna-chip" onclick="askQnaChip('택배 취소 방법')">❌ 취소 방법</button>
-        <button class="qna-chip" onclick="askQnaChip('국내택배와 반값택배 차이')">🚚 반값택배 차이</button>
-        <button class="qna-chip" onclick="askQnaChip('두두 택배 서비스')">⭐ 두두 택배</button>
       </div>
     </div>
 
@@ -818,8 +848,8 @@
         <div class="msg-content-group">
           <div class="msg-sender-name">두두봇</div>
           <div class="qna-msg">
-            안녕하세요! <strong>두두택배 AI 마스코트 두두봇</strong>입니다. 📦<br>
-            배송 조회, 접수 규정, 택배 요금, 취소 안내 등 무엇이든 편하게 물어보세요!
+            안녕하세요! <strong>관리자 전용 도슨트 두두봇</strong>입니다. 🛠️<br>
+            운송장 상태 변경, 취소 승인, 사업자 영수증, 동일/타권역 운임 지침 등을 도와드립니다!
           </div>
           <div class="msg-time">방금 전</div>
         </div>
